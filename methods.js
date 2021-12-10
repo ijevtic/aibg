@@ -169,3 +169,7 @@ function initStartPostion(res, mapa) {
 }
 // function generateNextMove(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
 // }
+var igrac = napraviPolje(-2, 0, 2, null, null);
+var meta = napraviPolje(2, -2, 0, null, null);
+var sl = idi_pravo_ka_polju(igrac, meta, new Map());
+console.log("q:" + sl.q + " r:" + sl.r + " s:" + sl.s);

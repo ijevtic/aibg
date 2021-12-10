@@ -187,3 +187,7 @@ function initStartPostion(res, mapa : Map<KeyType, Polje>){
 
 // function generateNextMove(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
 // }
+let igrac = napraviPolje(-2,0,2,null,null)
+let meta = napraviPolje(2,-2,0,null,null)
+let sl = idi_pravo_ka_polju(igrac, meta, new Map<KeyType, ValueType>())
+console.log("q:"+sl.q+" r:" + sl.r + " s:"+ sl.s)
