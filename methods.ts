@@ -1,5 +1,7 @@
 import { Polje, ValueType, Entity, KeyType, nextP } from "./types";
 
+let zastava: Polje = null;
+
 function poljeUMapi(tr: Polje): boolean{
     return Math.abs(tr.q) <= 14
          && Math.abs(tr.r) <= 14 
@@ -43,12 +45,17 @@ function dobij_susedne(tr: Polje, mapa: Map<KeyType, ValueType>): Polje[]{
     return niz;
 }
 
-function najblizePolje(tr:Polje, mapaDist:Map<KeyType, number>, mapa: Map<KeyType, ValueType>): Polje{
+function najPolje(tr:Polje, mapaDist:Map<KeyType, number>, mapa: Map<KeyType, ValueType>,
+    najblize: boolean): Polje{
     let susedni: Polje[] = dobij_susedne(tr,mapa);
     let res:Polje = null;
-    let best: number = 10000;
+    let best:number = 0;
+    if(najblize)
+        best = 10000;
     for(let i = 0; i < susedni.length; i++){
         let kljuc: KeyType = getKeyType(susedni[i]);
+        if((najblize && mapaDist.has(kljuc) && mapaDist.get(kljuc) < best) ||
+        ((!najblize && mapaDist.has(kljuc) && mapaDist.get(kljuc) > best)))
         if(mapaDist.has(kljuc) && mapaDist.get(kljuc) < best){
             best = mapaDist.get(kljuc);
             res = susedni[i];
@@ -76,7 +83,7 @@ function bfs(poc: Polje, mapa: Map<KeyType, ValueType>): Map<KeyType, number>{
             let kljuc:KeyType = getKeyType(susedni[i]);
             if(!mapaDist.get(kljuc) && prohodnoPolje(susedni[i], mapa))
             {
-                let closest: Polje = najblizePolje(susedni[i], mapaDist, mapa);
+                let closest: Polje = najPolje(susedni[i], mapaDist, mapa, true);
                 mapaDist.set(kljuc, dobijDist(closest,mapaDist)+1);
                 qu[br++] = susedni[i];
             }
@@ -87,5 +94,18 @@ function bfs(poc: Polje, mapa: Map<KeyType, ValueType>): Map<KeyType, number>{
 
 function idi_pravo_ka_polju(tr: Polje, cilj: Polje, mapa: Map<KeyType, ValueType>):Polje{
     let distMapa: Map<KeyType, number> = bfs(cilj, mapa);
-    return najblizePolje(tr, distMapa, mapa);
+    return najPolje(tr, distMapa, mapa, true);
 }
+
+function idi_ka_zastavi(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
+    return idi_pravo_ka_polju(tr, zastava, mapa);
+}
+
+function bezi_od_polja(tr: Polje, ne_cilj: Polje, mapa: Map<KeyType, ValueType>): Polje{
+    let distMapa: Map<KeyType, number> = bfs(ne_cilj, mapa);
+    return najPolje(tr, distMapa, mapa, false);
+}
+
+
+// function generateNextMove(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
+// }
