@@ -1,6 +1,7 @@
 import { Polje, ValueType, Entity, KeyType, nextP } from "./types";
 
 let zastava: Polje = null;
+let prodavnice: Polje[] = [];
 
 function poljeUMapi(tr: Polje): boolean{
     return Math.abs(tr.q) <= 14
@@ -92,6 +93,7 @@ function bfs(poc: Polje, mapa: Map<KeyType, ValueType>): Map<KeyType, number>{
     return mapaDist;
 }
 
+
 function idi_pravo_ka_polju(tr: Polje, cilj: Polje, mapa: Map<KeyType, ValueType>):Polje{
     let distMapa: Map<KeyType, number> = bfs(cilj, mapa);
     return najPolje(tr, distMapa, mapa, true);
@@ -106,6 +108,18 @@ function bezi_od_polja(tr: Polje, ne_cilj: Polje, mapa: Map<KeyType, ValueType>)
     return najPolje(tr, distMapa, mapa, false);
 }
 
+function najbliza_prodavnica(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
+    let distMapa: Map<KeyType, number> = bfs(tr, mapa);
+    let najbliza: Polje = null;
+    let dist = 100;
+    for(let i = 0; i < prodavnice.length; i++){
+        if(dobijDist(prodavnice[i], distMapa) < dist){
+            najbliza = prodavnice[i];
+            dist = dobijDist(prodavnice[i], distMapa);
+        }
+    }
+    return idi_pravo_ka_polju(tr, najbliza, mapa);
+}
 
 // function generateNextMove(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
 // }
