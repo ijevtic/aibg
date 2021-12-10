@@ -1,4 +1,7 @@
-import { Polje, ValueType, Entity, KeyType, nextP } from "./types";
+import { Polje, ValueType, Entity, KeyType, nextP, Avatar } from "./types";
+
+let zastava: Polje = null;
+let prodavnice: Polje[] = [];
 
 function poljeUMapi(tr: Polje): boolean{
     return Math.abs(tr.q) <= 14
@@ -43,12 +46,17 @@ function dobij_susedne(tr: Polje, mapa: Map<KeyType, ValueType>): Polje[]{
     return niz;
 }
 
-function najblizePolje(tr:Polje, mapaDist:Map<KeyType, number>, mapa: Map<KeyType, ValueType>): Polje{
+function najPolje(tr:Polje, mapaDist:Map<KeyType, number>, mapa: Map<KeyType, ValueType>,
+    najblize: boolean): Polje{
     let susedni: Polje[] = dobij_susedne(tr,mapa);
     let res:Polje = null;
-    let best: number = 10000;
+    let best:number = 0;
+    if(najblize)
+        best = 10000;
     for(let i = 0; i < susedni.length; i++){
         let kljuc: KeyType = getKeyType(susedni[i]);
+        if((najblize && mapaDist.has(kljuc) && mapaDist.get(kljuc) < best) ||
+        ((!najblize && mapaDist.has(kljuc) && mapaDist.get(kljuc) > best)))
         if(mapaDist.has(kljuc) && mapaDist.get(kljuc) < best){
             best = mapaDist.get(kljuc);
             res = susedni[i];
@@ -76,7 +84,7 @@ function bfs(poc: Polje, mapa: Map<KeyType, ValueType>): Map<KeyType, number>{
             let kljuc:KeyType = getKeyType(susedni[i]);
             if(!mapaDist.get(kljuc) && prohodnoPolje(susedni[i], mapa))
             {
-                let closest: Polje = najblizePolje(susedni[i], mapaDist, mapa);
+                let closest: Polje = najPolje(susedni[i], mapaDist, mapa, true);
                 mapaDist.set(kljuc, dobijDist(closest,mapaDist)+1);
                 qu[br++] = susedni[i];
             }
@@ -85,9 +93,10 @@ function bfs(poc: Polje, mapa: Map<KeyType, ValueType>): Map<KeyType, number>{
     return mapaDist;
 }
 
+
 function idi_pravo_ka_polju(tr: Polje, cilj: Polje, mapa: Map<KeyType, ValueType>):Polje{
     let distMapa: Map<KeyType, number> = bfs(cilj, mapa);
-    return najblizePolje(tr, distMapa, mapa);
+    return najPolje(tr, distMapa, mapa, true);
 }
 
 function vratiZastavu(response):Polje{
@@ -106,3 +115,75 @@ export function mapaVidljivihPolja(response):Map<KeyType, ValueType>{
     });
     return mapa;
 }
+
+function idi_ka_zastavi(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
+    return idi_pravo_ka_polju(tr, zastava, mapa);
+}
+
+function bezi_od_polja(tr: Polje, ne_cilj: Polje, mapa: Map<KeyType, ValueType>): Polje{
+    let distMapa: Map<KeyType, number> = bfs(ne_cilj, mapa);
+    return najPolje(tr, distMapa, mapa, false);
+}
+
+function najbliza_prodavnica(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
+    let distMapa: Map<KeyType, number> = bfs(tr, mapa);
+    let najbliza: Polje = null;
+    let dist = 100;
+    for(let i = 0; i < prodavnice.length; i++){
+        if(dobijDist(prodavnice[i], distMapa) < dist){
+            najbliza = prodavnice[i];
+            dist = dobijDist(prodavnice[i], distMapa);
+        }
+    }
+    return idi_pravo_ka_polju(tr, najbliza, mapa);
+}
+function getKeyTypeKoor(q: number, r: number, s:number) : KeyType{
+    let k : KeyType;
+    k.q = q;
+    k.r = r;
+    k.s = s;
+    return k;
+}
+
+
+function scanForEnemies(otherPlayers: Avatar[], npcs: Avatar[], res) : void{
+    if(res.player1){
+        otherPlayers.push(new Avatar(res.player1));
+    }
+    if(res.player2){
+        otherPlayers.push(new Avatar(res.player2));
+    }
+    if(res.player3){
+        otherPlayers.push(new Avatar(res.player3));
+    }
+    if(res.player4){
+        otherPlayers.push(new Avatar(res.player4));
+    }
+    if(res.npc1){
+        npcs.push(new Avatar(res.npc1));
+    }
+    if(res.npc2){
+        npcs.push(new Avatar(res.npc2));
+    }
+}
+function initStartPostion(res, mapa : Map<KeyType, Polje>){
+    switch(res.id){
+        case 1:
+            mapa.set(getKeyTypeKoor(-7,-7,14), napraviPolje(-7,-7,14, null, "NORMAL"));
+            break;
+        case 2:
+            mapa.set(getKeyTypeKoor(14,-7,-7), napraviPolje(14,-7,-7, null, "NORMAL"));
+            break;
+        case 3:
+            mapa.set(getKeyTypeKoor(7,7,-14), napraviPolje(7,7,1-4, null, "NORMAL"));
+            break;
+        case 4:
+            mapa.set(getKeyTypeKoor(-14,-14,7), napraviPolje(-14,7,7, null, "NORMAL"));
+            break;    
+        
+    }
+}
+
+
+// function generateNextMove(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
+// }

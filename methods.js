@@ -2,6 +2,8 @@
 exports.__esModule = true;
 exports.mapaVidljivihPolja = void 0;
 var types_1 = require("./types");
+var zastava = null;
+var prodavnice = [];
 function poljeUMapi(tr) {
     return Math.abs(tr.q) <= 14
         && Math.abs(tr.r) <= 14
@@ -40,16 +42,20 @@ function dobij_susedne(tr, mapa) {
             niz.push(napraviPolje(tr.q + types_1.nextP[i][0], tr.r + types_1.nextP[i][1], tr.s + types_1.nextP[i][2], null, null));
     return niz;
 }
-function najblizePolje(tr, mapaDist, mapa) {
+function najPolje(tr, mapaDist, mapa, najblize) {
     var susedni = dobij_susedne(tr, mapa);
     var res = null;
-    var best = 10000;
+    var best = 0;
+    if (najblize)
+        best = 10000;
     for (var i = 0; i < susedni.length; i++) {
         var kljuc = getKeyType(susedni[i]);
-        if (mapaDist.has(kljuc) && mapaDist.get(kljuc) < best) {
-            best = mapaDist.get(kljuc);
-            res = susedni[i];
-        }
+        if ((najblize && mapaDist.has(kljuc) && mapaDist.get(kljuc) < best) ||
+            ((!najblize && mapaDist.has(kljuc) && mapaDist.get(kljuc) > best)))
+            if (mapaDist.has(kljuc) && mapaDist.get(kljuc) < best) {
+                best = mapaDist.get(kljuc);
+                res = susedni[i];
+            }
     }
     return res;
 }
@@ -71,7 +77,7 @@ function bfs(poc, mapa) {
         for (var i = 0; i < susedni.length; i++) {
             var kljuc = getKeyType(susedni[i]);
             if (!mapaDist.get(kljuc) && prohodnoPolje(susedni[i], mapa)) {
-                var closest = najblizePolje(susedni[i], mapaDist, mapa);
+                var closest = najPolje(susedni[i], mapaDist, mapa, true);
                 mapaDist.set(kljuc, dobijDist(closest, mapaDist) + 1);
                 qu[br++] = susedni[i];
             }
@@ -81,7 +87,7 @@ function bfs(poc, mapa) {
 }
 function idi_pravo_ka_polju(tr, cilj, mapa) {
     var distMapa = bfs(cilj, mapa);
-    return najblizePolje(tr, distMapa, mapa);
+    return najPolje(tr, distMapa, mapa, true);
 }
 function vratiZastavu(response) {
     return response.currFlag;
@@ -99,3 +105,67 @@ function mapaVidljivihPolja(response) {
     return mapa;
 }
 exports.mapaVidljivihPolja = mapaVidljivihPolja;
+function idi_ka_zastavi(tr, mapa) {
+    return idi_pravo_ka_polju(tr, zastava, mapa);
+}
+function bezi_od_polja(tr, ne_cilj, mapa) {
+    var distMapa = bfs(ne_cilj, mapa);
+    return najPolje(tr, distMapa, mapa, false);
+}
+function najbliza_prodavnica(tr, mapa) {
+    var distMapa = bfs(tr, mapa);
+    var najbliza = null;
+    var dist = 100;
+    for (var i = 0; i < prodavnice.length; i++) {
+        if (dobijDist(prodavnice[i], distMapa) < dist) {
+            najbliza = prodavnice[i];
+            dist = dobijDist(prodavnice[i], distMapa);
+        }
+    }
+    return idi_pravo_ka_polju(tr, najbliza, mapa);
+}
+function getKeyTypeKoor(q, r, s) {
+    var k;
+    k.q = q;
+    k.r = r;
+    k.s = s;
+    return k;
+}
+function scanForEnemies(otherPlayers, npcs, res) {
+    if (res.player1) {
+        otherPlayers.push(new types_1.Avatar(res.player1));
+    }
+    if (res.player2) {
+        otherPlayers.push(new types_1.Avatar(res.player2));
+    }
+    if (res.player3) {
+        otherPlayers.push(new types_1.Avatar(res.player3));
+    }
+    if (res.player4) {
+        otherPlayers.push(new types_1.Avatar(res.player4));
+    }
+    if (res.npc1) {
+        npcs.push(new types_1.Avatar(res.npc1));
+    }
+    if (res.npc2) {
+        npcs.push(new types_1.Avatar(res.npc2));
+    }
+}
+function initStartPostion(res, mapa) {
+    switch (res.id) {
+        case 1:
+            mapa.set(getKeyTypeKoor(-7, -7, 14), napraviPolje(-7, -7, 14, null, "NORMAL"));
+            break;
+        case 2:
+            mapa.set(getKeyTypeKoor(14, -7, -7), napraviPolje(14, -7, -7, null, "NORMAL"));
+            break;
+        case 3:
+            mapa.set(getKeyTypeKoor(7, 7, -14), napraviPolje(7, 7, 1 - 4, null, "NORMAL"));
+            break;
+        case 4:
+            mapa.set(getKeyTypeKoor(-14, -14, 7), napraviPolje(-14, 7, 7, null, "NORMAL"));
+            break;
+    }
+}
+// function generateNextMove(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
+// }

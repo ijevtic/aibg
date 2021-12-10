@@ -3,7 +3,7 @@ import {mapaVidljivihPolja} from "./methods"
 
 const SERVER_IP = 'best2.aibg.best:9080';
 const MY_ID = 11;
-const GAME_ID = 16;
+const GAME_ID = 17;
 
 
 const main = async () => {
