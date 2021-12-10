@@ -1,4 +1,4 @@
-import { Polje, ValueType, Entity, KeyType } from "./types";
+import { Polje, ValueType, Entity, KeyType, nextP } from "./types";
 
 function poljeUMapi(tr: Polje): boolean{
     return Math.abs(tr.q) <= 14
@@ -10,56 +10,82 @@ function poljeUMapiKoor(q: number, r: number, s: number): boolean{
     return poljeUMapi(napraviPolje(q,r,s, null, null));
 }
 
-function prohodnoPolje(tr: Polje, mapa: Map<Polje>): boolean{
-    if(!poljeUMapi(tr)) return false;
-    if()
+function getKeyType(tr:Polje):KeyType{
+    let ret : KeyType;
+    ret.q = tr.q;
+    ret.r = tr.r;
+    ret.s = tr.s;
+    return ret;
 }
 
-// function getEntity(mapa: Map<Polje, string>)
-
-// function slobodnoPolje(tr: Polje):
-
+function prohodnoPolje(tr: Polje, mapa: Map<KeyType, ValueType>): boolean{
+    if(!poljeUMapi(tr)) return false;
+    let kljuc: KeyType = getKeyType(tr);
+    if(!mapa.has(kljuc)) return true;
+    return mapa.get(kljuc).entity == null;
+}
 
 function napraviPolje(q: number, r: number, s: number, entity: Entity, tileType: string): Polje{
     let polje: Polje = {q,r,s,entity, tileType};
     return polje;
 }
 
-function dobij_susedne(tr: Polje): Polje[]{
+function probajSusedni(q: number, r: number, s: number, mapa: Map<KeyType, ValueType>): boolean{
+    let polje: Polje = napraviPolje(q,r,s,null, null);
+    return prohodnoPolje(polje, mapa);
+}
+
+function dobij_susedne(tr: Polje, mapa: Map<KeyType, ValueType>): Polje[]{
     let niz: Polje[] = [];
-    let q:number = tr.q;
-    let r:number = tr.r;
-    let s:number = tr.s;
-    if(poljeUMapiKoor(q-1,r+1,s,null, null)) niz.push(napraviPolje(q-1,r+1,s,null));
-    if(poljeUMapiKoor(q+1,r-1,s,null)) niz.push(napraviPolje(q+1,r-1,s,null));
-    if(poljeUMapiKoor(q-1,r,s+1,null)) niz.push(napraviPolje(q-1,r,s+1,null));
-    if(poljeUMapiKoor(q+1,r,s-1,null)) niz.push(napraviPolje(q+1,r,s-1,null));
-    if(poljeUMapiKoor(q,r+1,s-1)) niz.push(napraviPolje(q,r+1,s-1,null));
-    if(poljeUMapiKoor(q,r-1,s+1)) niz.push(napraviPolje(q,r-1,s+1,null));
+    for(let i = 0; i < 6; i++)
+        if(probajSusedni(tr.q + nextP[i][0], tr.r + nextP[i][1], tr.s + nextP[i][2], mapa))
+            niz.push(napraviPolje(tr.q + nextP[i][0], tr.r + nextP[i][1], tr.s + nextP[i][2], null, null));
     return niz;
 }
 
-function dobij_najblizi(susedni: Polje[], mapa: Map<Polje, number>): number {
-    let dist: number = Number.MAX_SAFE_INTEGER;
-    for(let i=0; i<susedni.length; i++)
-        if(mapa.has(susedni[i])) 
-            dist = Math.min(dist, mapa.get(susedni[i]));
-    return dist;
+function najblizePolje(tr:Polje, mapaDist:Map<KeyType, number>, mapa: Map<KeyType, ValueType>): Polje{
+    let susedni: Polje[] = dobij_susedne(tr,mapa);
+    let res:Polje = null;
+    let best: number = 10000;
+    for(let i = 0; i < susedni.length; i++){
+        let kljuc: KeyType = getKeyType(susedni[i]);
+        if(mapaDist.has(kljuc) && mapaDist.get(kljuc) < best){
+            best = mapaDist.get(kljuc);
+            res = susedni[i];
+        }
+    }
+    return res;
 }
 
-function bfs(poc: Polje): Map<Polje, number>{
-    let mapa: Map<Polje, number> = new Map<Polje, number>();
+function dobijDist(tr:Polje, mapaDist: Map<KeyType, number>): number{
+    if(tr == null || !mapaDist.has(getKeyType(tr))) return 10000;
+    return mapaDist.get(getKeyType(tr));
+}
+
+function bfs(poc: Polje, mapa: Map<KeyType, ValueType>): Map<KeyType, number>{
+    let mapaDist: Map<KeyType, number> = new Map<Polje, number>();
     let qu: Polje[] = [];
     let br = 0;
     qu.push(poc);
-    mapa.set(poc, 0);
+    mapaDist.set(getKeyType(poc), 0);
     while(br < qu.length) {
         br++;
-        let 
-        let susedni: Polje[] = dobij_susedne(tr)
+        let tr = qu[br];
+        let susedni: Polje[] = dobij_susedne(tr, mapa);
+        for(let i = 0; i < susedni.length; i++) {
+            let kljuc:KeyType = getKeyType(susedni[i]);
+            if(!mapaDist.get(kljuc) && prohodnoPolje(susedni[i], mapa))
+            {
+                let closest: Polje = najblizePolje(susedni[i], mapaDist, mapa);
+                mapaDist.set(kljuc, dobijDist(closest,mapaDist)+1);
+                qu[br++] = susedni[i];
+            }
+        }
     }
+    return mapaDist;
 }
 
-function idi_pravo_ka_polju(tr: Polje, cilj: Polje, mapa: Map<Polje, String>):Polje{
-    
+function idi_pravo_ka_polju(tr: Polje, cilj: Polje, mapa: Map<KeyType, ValueType>):Polje{
+    let distMapa: Map<KeyType, number> = bfs(cilj, mapa);
+    return najblizePolje(tr, distMapa, mapa);
 }

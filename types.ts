@@ -20,3 +20,5 @@ export interface KeyType{
     r: number,
     s: number
 }
+
+export const nextP = [[-1,1,0], [1,-1,0],[1,0,-1],[-1,0,1],[0,1,-1],[0,-1,1]];
