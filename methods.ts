@@ -1,4 +1,4 @@
-import { Polje, ValueType, Entity, KeyType, nextP } from "./types";
+import { Polje, ValueType, Entity, KeyType, nextP, Avatar } from "./types";
 
 let zastava: Polje = null;
 let prodavnice: Polje[] = [];
@@ -120,6 +120,53 @@ function najbliza_prodavnica(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
     }
     return idi_pravo_ka_polju(tr, najbliza, mapa);
 }
+function getKeyTypeKoor(q: number, r: number, s:number) : KeyType{
+    let k : KeyType;
+    k.q = q;
+    k.r = r;
+    k.s = s;
+    return k;
+}
+
+
+function scanForEnemies(otherPlayers: Avatar[], npcs: Avatar[], res) : void{
+    if(res.player1){
+        otherPlayers.push(new Avatar(res.player1));
+    }
+    if(res.player2){
+        otherPlayers.push(new Avatar(res.player2));
+    }
+    if(res.player3){
+        otherPlayers.push(new Avatar(res.player3));
+    }
+    if(res.player4){
+        otherPlayers.push(new Avatar(res.player4));
+    }
+    if(res.npc1){
+        npcs.push(new Avatar(res.npc1));
+    }
+    if(res.npc2){
+        npcs.push(new Avatar(res.npc2));
+    }
+}
+function initStartPostion(res, mapa : Map<KeyType, Polje>){
+    switch(res.id){
+        case 1:
+            mapa.set(getKeyTypeKoor(-7,-7,14), napraviPolje(-7,-7,14, null, "NORMAL"));
+            break;
+        case 2:
+            mapa.set(getKeyTypeKoor(14,-7,-7), napraviPolje(14,-7,-7, null, "NORMAL"));
+            break;
+        case 3:
+            mapa.set(getKeyTypeKoor(7,7,-14), napraviPolje(7,7,1-4, null, "NORMAL"));
+            break;
+        case 4:
+            mapa.set(getKeyTypeKoor(-14,-14,7), napraviPolje(-14,7,7, null, "NORMAL"));
+            break;    
+        
+    }
+}
+
 
 // function generateNextMove(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
 // }
