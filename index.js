@@ -37,18 +37,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var node_fetch_1 = require("node-fetch");
+var methods_1 = require("./methods");
 var SERVER_IP = 'best2.aibg.best:9080';
 var MY_ID = 11;
-var GAME_ID = 3;
+var GAME_ID = 16;
 var main = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var inicijalnoStanje;
+    var inicijalnoStanje, mapa;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/train?gameId=").concat(MY_ID).concat(GAME_ID, "&playerId=").concat(MY_ID, "&position=").concat(1))
                     .then(function (res) { return res.json(); })];
             case 1:
                 inicijalnoStanje = _a.sent();
-                console.log(inicijalnoStanje);
+                mapa = (0, methods_1.mapaVidljivihPolja)(inicijalnoStanje);
+                console.log(mapa);
                 return [2 /*return*/];
         }
     });

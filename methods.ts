@@ -89,3 +89,20 @@ function idi_pravo_ka_polju(tr: Polje, cilj: Polje, mapa: Map<KeyType, ValueType
     let distMapa: Map<KeyType, number> = bfs(cilj, mapa);
     return najblizePolje(tr, distMapa, mapa);
 }
+
+function vratiZastavu(response):Polje{
+    return response.currFlag;
+}
+
+export function mapaVidljivihPolja(response):Map<KeyType, ValueType>{
+    const mapa:Map<KeyType,ValueType> = new Map<KeyType,ValueType>();
+    const listaPolja = response.map.tiles.flat();
+    const samoVidljiva = listaPolja.filter(cur => Object.keys(cur).length !== 0);
+    samoVidljiva.forEach((element: Polje) => {
+        const {q, r, s, entity, tileType}  = element;
+        const kljuc:KeyType = {q, r, s} ;
+        const vrednost:ValueType = {entity, tileType};
+        mapa.set(kljuc,vrednost);
+    });
+    return mapa;
+}
