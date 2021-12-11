@@ -167,9 +167,34 @@ function initStartPostion(res, mapa) {
             break;
     }
 }
+function getDirection(target, current) {
+    var deltaQ = target.q - current.q;
+    var deltaR = target.r - current.r;
+    var deltaS = target.s - current.s;
+    if (deltaQ == 0 && deltaR == 1 && deltaS == -1) {
+        return "nw";
+    }
+    else if (deltaQ == -1 && deltaR == 1 && deltaS == 0) {
+        return "w";
+    }
+    else if (deltaQ == -1 && deltaR == 0 && deltaS == 1) {
+        return "sw";
+    }
+    else if (deltaQ == 0 && deltaR == -1 && deltaS == 1) {
+        return "se";
+    }
+    else if (deltaQ == 1 && deltaR == -1 && deltaS == 0) {
+        return "e";
+    }
+    else if (deltaQ == 1 && deltaR == 0 && deltaS == -1) {
+        return "ne";
+    }
+    console.log("NEVALIDNA KOORDINATA!!!!!");
+    return "";
+}
 // function generateNextMove(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
 // }
-var igrac = napraviPolje(-2, 0, 2, null, null);
-var meta = napraviPolje(2, -2, 0, null, null);
-var sl = idi_pravo_ka_polju(igrac, meta, new Map());
-console.log("q:" + sl.q + " r:" + sl.r + " s:" + sl.s);
+// let igrac = napraviPolje(-2,0,2,null,null)
+// let meta = napraviPolje(2,-2,0,null,null)
+// let sl = idi_pravo_ka_polju(igrac, meta, new Map<KeyType, ValueType>())
+// console.log("q:"+sl.q+" r:" + sl.r + " s:"+ sl.s)
