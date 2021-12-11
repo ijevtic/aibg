@@ -4,7 +4,7 @@ import { Polje } from './types';
 
 const SERVER_IP = 'best1.aibg.best:9080';
 export const MY_ID: number = 11;
-const GAME_ID = 136;
+const GAME_ID = 137;
 
 
 

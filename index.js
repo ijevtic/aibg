@@ -41,7 +41,7 @@ var node_fetch_1 = require("node-fetch");
 var methods_1 = require("./methods");
 var SERVER_IP = 'best1.aibg.best:9080';
 exports.MY_ID = 11;
-var GAME_ID = 136;
+var GAME_ID = 137;
 var main = function () { return __awaiter(void 0, void 0, void 0, function () {
     var inicijalnoStanje, i, poljeGdeIdemo, gdeIdemo, odluka, drugi;
     return __generator(this, function (_a) {
@@ -75,9 +75,7 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                         gdeIdemo = "buy-CANNONS";
                         break;
                     case 5:
-                        console.log("napadanjeeeeeeeeeeeeeeeeeeeeeeeeeeee");
                         gdeIdemo = "atk-" + (0, methods_1.vratiIdNapada)();
-                        console.log(gdeIdemo);
                         break;
                 }
                 return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/doAction?playerId=").concat(exports.MY_ID, "&gameId=").concat(exports.MY_ID).concat(GAME_ID, "&action=").concat(gdeIdemo))
@@ -87,7 +85,6 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                 if (drugi == null) {
                     return [3 /*break*/, 4];
                 }
-                console.log(drugi);
                 (0, methods_1.updateGlobal)(drugi);
                 _a.label = 4;
             case 4:

@@ -24,6 +24,7 @@ export interface KeyType{
 
 export const nextP = [[-1,1,0], [1,-1,0],[1,0,-1],[-1,0,1],[0,1,-1],[0,-1,1]];
 
+
 export interface Avatar{
     id : number;
     health : number;

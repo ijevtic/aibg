@@ -99,7 +99,7 @@ export function odlucivac():number{
 export function dalNapadamo(){
    let lav:Polje[]=[];
    lav.push(igrac);
-   let mapDist=bfs(lav,globalnaMapa);
+   let mapDist=bfsVazduh(lav);
    for(let player of igraci){
        if(dobijDist(napraviPoljeOdAvatara(player),mapDist,true)<=2){
            return player.id;
@@ -324,6 +324,49 @@ function bfs(nizPolja: Polje[], mapa: Map<number, ValueType>): Map<number, numbe
     return mapaDist;
 }
 
+function dobij_susedne_vazduh(tr: Polje): Polje[]{
+    let niz: Polje[] = [];
+    for(let i = 0; i < 6; i++){
+        if(poljeUMapi(napraviPolje(tr.q + nextP[i][0], tr.r + nextP[i][1], tr.s + nextP[i][2],null,null)))
+            niz.push(napraviPolje(tr.q + nextP[i][0], tr.r + nextP[i][1], tr.s + nextP[i][2], null, null));
+    }
+    return niz;
+}
+
+function bfsVazduh(nizPolja: Polje[]): Map<number, number>{
+    let mapaDist: Map<number, number> = new Map<number, number>();
+    let qu: Polje[] = nizPolja;
+    let duz = qu.length;
+    let br = 0;
+    let praviD = 0;
+    let praviM = 0;
+    for(let i = 0; i < qu.length; i++)
+        mapaDist.set(napraviHash(qu[i]),0);
+    
+        mapaDist.forEach((value: number, key: number) => {
+            if(value != 0) praviM++;
+        });
+    while(br < duz) {
+        let tr = qu[br++];
+        let susedni: Polje[] = dobij_susedne_vazduh(tr);
+        // console.log(JSON.stringify(susedni))
+        for(let i = 0; i < susedni.length; i++) {
+            let kljuc:number = napraviHash(susedni[i]);
+            if(!mapaDist.has(kljuc))
+            {
+                // let closest: Polje = najPolje(susedni[i], mapaDist, mapa, true, false);
+                mapaDist.set(kljuc, dobijDist(tr,mapaDist,true)+1);
+                if(dobijDist(tr,mapaDist,true)+1 < 1000) praviD++;
+                qu.push(susedni[i]);
+                duz++;
+                // console.log(br + " " + duz);
+            }
+        }
+    }
+    
+    // console.log("Obisao polja u bfs:" + duz + " " + praviD + " " + praviM);
+    return mapaDist;
+}
 
 function idi_pravo_ka_polju(tr: Polje, cilj: Polje, mapa: Map<number, ValueType>):Polje{
     let nizCilj: Polje[] = [];

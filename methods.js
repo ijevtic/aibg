@@ -99,11 +99,9 @@ exports.odlucivac = odlucivac;
 function dalNapadamo() {
     var lav = [];
     lav.push(igrac);
-    var mapDist = bfs(lav, globalnaMapa);
+    var mapDist = bfsVazduh(lav);
     for (var _i = 0, igraci_1 = igraci; _i < igraci_1.length; _i++) {
         var player = igraci_1[_i];
-        console.log("trenutni igrac");
-        console.log(player);
         if (dobijDist(napraviPoljeOdAvatara(player), mapDist, true) <= 2) {
             return player.id;
         }
@@ -312,6 +310,47 @@ function bfs(nizPolja, mapa) {
     // console.log("Obisao polja u bfs:" + duz + " " + praviD + " " + praviM);
     return mapaDist;
 }
+function dobij_susedne_vazduh(tr) {
+    var niz = [];
+    for (var i = 0; i < 6; i++) {
+        if (poljeUMapi(napraviPolje(tr.q + types_1.nextP[i][0], tr.r + types_1.nextP[i][1], tr.s + types_1.nextP[i][2], null, null)))
+            niz.push(napraviPolje(tr.q + types_1.nextP[i][0], tr.r + types_1.nextP[i][1], tr.s + types_1.nextP[i][2], null, null));
+    }
+    return niz;
+}
+function bfsVazduh(nizPolja) {
+    var mapaDist = new Map();
+    var qu = nizPolja;
+    var duz = qu.length;
+    var br = 0;
+    var praviD = 0;
+    var praviM = 0;
+    for (var i = 0; i < qu.length; i++)
+        mapaDist.set(napraviHash(qu[i]), 0);
+    mapaDist.forEach(function (value, key) {
+        if (value != 0)
+            praviM++;
+    });
+    while (br < duz) {
+        var tr = qu[br++];
+        var susedni = dobij_susedne_vazduh(tr);
+        // console.log(JSON.stringify(susedni))
+        for (var i = 0; i < susedni.length; i++) {
+            var kljuc = napraviHash(susedni[i]);
+            if (!mapaDist.has(kljuc)) {
+                // let closest: Polje = najPolje(susedni[i], mapaDist, mapa, true, false);
+                mapaDist.set(kljuc, dobijDist(tr, mapaDist, true) + 1);
+                if (dobijDist(tr, mapaDist, true) + 1 < 1000)
+                    praviD++;
+                qu.push(susedni[i]);
+                duz++;
+                // console.log(br + " " + duz);
+            }
+        }
+    }
+    // console.log("Obisao polja u bfs:" + duz + " " + praviD + " " + praviM);
+    return mapaDist;
+}
 function idi_pravo_ka_polju(tr, cilj, mapa) {
     var nizCilj = [];
     nizCilj[0] = cilj;
@@ -393,23 +432,15 @@ function scanForEnemies(res) {
     var otherPlayers = [];
     if (res.player1 && res.player1.id != index_1.MY_ID && res.player1.health > 0) {
         otherPlayers.push(createAvatar(res.player1));
-        console.log(res.player1.id);
-        console.log("ID IGRACAAAAAA");
     }
     if (res.player2 && res.player2.id != index_1.MY_ID && res.player2.health > 0) {
         otherPlayers.push(createAvatar(res.player2));
-        console.log(res.player2.id);
-        console.log("ID IGRACAAAAAA");
     }
     if (res.player3 && res.player3.id != index_1.MY_ID && res.player3.health > 0) {
         otherPlayers.push(createAvatar(res.player3));
-        console.log(res.player3.id);
-        console.log("ID IGRACAAAAAA");
     }
     if (res.player4 && res.player4.id != index_1.MY_ID && res.player4.health > 0) {
         otherPlayers.push(createAvatar(res.player4));
-        console.log(res.player4.id);
-        console.log("ID IGRACAAAAAA");
     }
     if (res.npc1 && res.npc1.health > 0) {
         otherPlayers.push(createAvatar(res.npc1));
