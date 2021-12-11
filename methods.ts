@@ -238,3 +238,29 @@ while(napraviHash(igrac) != napraviHash(meta))
     igrac = sl
     console.log("q:"+sl.q+" r:" + sl.r + " s:"+ sl.s)
 }
+
+function getDirection(target, current) {
+    var deltaQ = target.q - current.q;
+    var deltaR = target.r - current.r;
+    var deltaS = target.s - current.s;
+    if (deltaQ == 0 && deltaS== 1 && deltaR == -1) {
+        return "nw";
+    }
+    else if (deltaQ == -1 && deltaS == 1 && deltaR == 0) {
+        return "w";
+    }
+    else if (deltaQ == -1 && deltaS == 0 && deltaR == 1) {
+        return "sw";
+    }
+    else if (deltaQ == 0 && deltaS == -1 && deltaR == 1) {
+        return "se";
+    }
+    else if (deltaQ == 1 && deltaS == -1 && deltaR == 0) {
+        return "e";
+    }
+    else if (deltaQ == 1 && deltaS == 0 && deltaR == -1) {
+        return "ne";
+    }
+    console.log("NEVALIDNA KOORDINATA!!!!!");
+    return "";
+}
