@@ -13,16 +13,17 @@ function poljeUMapiKoor(q, r, s) {
     return poljeUMapi(napraviPolje(q, r, s, null, null));
 }
 function getKeyType(tr) {
-    var ret;
-    ret.q = tr.q;
-    ret.r = tr.r;
-    ret.s = tr.s;
+    var q = tr.q, r = tr.r, s = tr.s;
+    var ret = { q: q, r: r, s: s };
     return ret;
+}
+function napraviHash(tr) {
+    return tr.q * 100000 + tr.r * 1000 + tr.s;
 }
 function prohodnoPolje(tr, mapa) {
     if (!poljeUMapi(tr))
         return false;
-    var kljuc = getKeyType(tr);
+    var kljuc = napraviHash(tr);
     if (!mapa.has(kljuc))
         return true;
     return mapa.get(kljuc).entity == null;
@@ -37,49 +38,67 @@ function probajSusedni(q, r, s, mapa) {
 }
 function dobij_susedne(tr, mapa) {
     var niz = [];
-    for (var i = 0; i < 6; i++)
+    for (var i = 0; i < 6; i++) {
         if (probajSusedni(tr.q + types_1.nextP[i][0], tr.r + types_1.nextP[i][1], tr.s + types_1.nextP[i][2], mapa))
             niz.push(napraviPolje(tr.q + types_1.nextP[i][0], tr.r + types_1.nextP[i][1], tr.s + types_1.nextP[i][2], null, null));
+    }
     return niz;
 }
 function najPolje(tr, mapaDist, mapa, najblize) {
     var susedni = dobij_susedne(tr, mapa);
     var res = null;
-    var best = 0;
+    var best = -1;
     if (najblize)
         best = 10000;
+    // console.log("trenutno polje" + JSON.stringify(tr));
+    // console.log("ide lista susednih");
+    // console.log(JSON.stringify(susedni));
     for (var i = 0; i < susedni.length; i++) {
-        var kljuc = getKeyType(susedni[i]);
-        if ((najblize && mapaDist.has(kljuc) && mapaDist.get(kljuc) < best) ||
-            ((!najblize && mapaDist.has(kljuc) && mapaDist.get(kljuc) > best)))
-            if (mapaDist.has(kljuc) && mapaDist.get(kljuc) < best) {
-                best = mapaDist.get(kljuc);
-                res = susedni[i];
-            }
+        var kljuc = napraviHash(susedni[i]);
+        if ((najblize && dobijDist(susedni[i], mapaDist, najblize) < best) ||
+            ((!najblize && dobijDist(susedni[i], mapaDist, najblize) > best))) {
+            best = dobijDist(susedni[i], mapaDist, najblize);
+            res = susedni[i];
+        }
+        if (napraviHash(susedni[i]) == napraviHash(napraviPolje(0, 3, -3, null, null))) {
+            console.log("!!!!!!!!!!!!!!!!");
+            console.log(best);
+            console.log(dobijDist(napraviPolje(0, 3, -3, null, null), mapaDist, najblize));
+        }
     }
+    if (napraviHash(res) == napraviHash(napraviPolje(0, 3, -3, null, null)))
+        console.log("???????");
     return res;
 }
-function dobijDist(tr, mapaDist) {
-    if (tr == null || !mapaDist.has(getKeyType(tr)))
-        return 10000;
-    return mapaDist.get(getKeyType(tr));
+function dobijDist(tr, mapaDist, najblize) {
+    if (tr == null || !mapaDist.has(napraviHash(tr))) {
+        if (najblize)
+            return 1000;
+        return -1000;
+    }
+    return mapaDist.get(napraviHash(tr));
 }
 function bfs(poc, mapa) {
     var mapaDist = new Map();
     var qu = [];
     var br = 0;
     qu.push(poc);
-    mapaDist.set(getKeyType(poc), 0);
-    while (br < qu.length) {
-        br++;
-        var tr = qu[br];
+    var duz = 1;
+    mapaDist.set(napraviHash(poc), 0);
+    while (br < duz) {
+        var tr = qu[br++];
         var susedni = dobij_susedne(tr, mapa);
+        // console.log(JSON.stringify(susedni))
         for (var i = 0; i < susedni.length; i++) {
-            var kljuc = getKeyType(susedni[i]);
-            if (!mapaDist.get(kljuc) && prohodnoPolje(susedni[i], mapa)) {
+            var kljuc = napraviHash(susedni[i]);
+            if (!mapaDist.has(kljuc) && prohodnoPolje(susedni[i], mapa)) {
+                if (napraviHash(susedni[i]) == napraviHash(poc)) {
+                    console.log("............................");
+                }
                 var closest = najPolje(susedni[i], mapaDist, mapa, true);
-                mapaDist.set(kljuc, dobijDist(closest, mapaDist) + 1);
-                qu[br++] = susedni[i];
+                mapaDist.set(kljuc, dobijDist(closest, mapaDist, true) + 1);
+                qu[duz++] = susedni[i];
+                // console.log(br + " " + duz);
             }
         }
     }
@@ -87,7 +106,9 @@ function bfs(poc, mapa) {
 }
 function idi_pravo_ka_polju(tr, cilj, mapa) {
     var distMapa = bfs(cilj, mapa);
-    return najPolje(tr, distMapa, mapa, true);
+    var polje = najPolje(tr, distMapa, mapa, true);
+    console.log("distanca" + dobijDist(polje, distMapa, true));
+    return polje;
 }
 function vratiZastavu(response) {
     return response.currFlag;
@@ -98,7 +119,7 @@ function mapaVidljivihPolja(response) {
     var samoVidljiva = listaPolja.filter(function (cur) { return Object.keys(cur).length !== 0; });
     samoVidljiva.forEach(function (element) {
         var q = element.q, r = element.r, s = element.s, entity = element.entity, tileType = element.tileType;
-        var kljuc = { q: q, r: r, s: s };
+        var kljuc = napraviHash({ q: q, r: r, s: s, entity: entity, tileType: tileType });
         var vrednost = { entity: entity, tileType: tileType };
         mapa.set(kljuc, vrednost);
     });
@@ -110,16 +131,18 @@ function idi_ka_zastavi(tr, mapa) {
 }
 function bezi_od_polja(tr, ne_cilj, mapa) {
     var distMapa = bfs(ne_cilj, mapa);
-    return najPolje(tr, distMapa, mapa, false);
+    var polje = najPolje(tr, distMapa, mapa, false);
+    // console.log("distanca" + dobijDist(polje, distMapa))
+    return polje;
 }
 function najbliza_prodavnica(tr, mapa) {
     var distMapa = bfs(tr, mapa);
     var najbliza = null;
     var dist = 100;
     for (var i = 0; i < prodavnice.length; i++) {
-        if (dobijDist(prodavnice[i], distMapa) < dist) {
+        if (dobijDist(prodavnice[i], distMapa, true) < dist) {
             najbliza = prodavnice[i];
-            dist = dobijDist(prodavnice[i], distMapa);
+            dist = dobijDist(prodavnice[i], distMapa, true);
         }
     }
     return idi_pravo_ka_polju(tr, najbliza, mapa);
@@ -151,50 +174,32 @@ function scanForEnemies(otherPlayers, npcs, res) {
         npcs.push(new types_1.Avatar(res.npc2));
     }
 }
-function initStartPostion(res, mapa) {
-    switch (res.id) {
-        case 1:
-            mapa.set(getKeyTypeKoor(-7, -7, 14), napraviPolje(-7, -7, 14, null, "NORMAL"));
-            break;
-        case 2:
-            mapa.set(getKeyTypeKoor(14, -7, -7), napraviPolje(14, -7, -7, null, "NORMAL"));
-            break;
-        case 3:
-            mapa.set(getKeyTypeKoor(7, 7, -14), napraviPolje(7, 7, 1 - 4, null, "NORMAL"));
-            break;
-        case 4:
-            mapa.set(getKeyTypeKoor(-14, -14, 7), napraviPolje(-14, 7, 7, null, "NORMAL"));
-            break;
-    }
-}
-function getDirection(target, current) {
-    var deltaQ = target.q - current.q;
-    var deltaR = target.r - current.r;
-    var deltaS = target.s - current.s;
-    if (deltaQ == 0 && deltaR == 1 && deltaS == -1) {
-        return "nw";
-    }
-    else if (deltaQ == -1 && deltaR == 1 && deltaS == 0) {
-        return "w";
-    }
-    else if (deltaQ == -1 && deltaR == 0 && deltaS == 1) {
-        return "sw";
-    }
-    else if (deltaQ == 0 && deltaR == -1 && deltaS == 1) {
-        return "se";
-    }
-    else if (deltaQ == 1 && deltaR == -1 && deltaS == 0) {
-        return "e";
-    }
-    else if (deltaQ == 1 && deltaR == 0 && deltaS == -1) {
-        return "ne";
-    }
-    console.log("NEVALIDNA KOORDINATA!!!!!");
-    return "";
-}
+// function initStartPostion(res, mapa : Map<number, Polje>){
+//     switch(res.id){
+//         case 1:
+//             mapa.set(napraviHash(napraviPolje(-7,-7,14)), napraviPolje(-7,-7,14, null, "NORMAL"));
+//             break;
+//         case 2:
+//             mapa.set(getKeyTypeKoor(14,-7,-7), napraviPolje(14,-7,-7, null, "NORMAL"));
+//             break;
+//         case 3:
+//             mapa.set(getKeyTypeKoor(7,7,-14), napraviPolje(7,7,1-4, null, "NORMAL"));
+//             break;
+//         case 4:
+//             mapa.set(getKeyTypeKoor(-14,-14,7), napraviPolje(-14,7,7, null, "NORMAL"));
+//             break;    
+//     }
+// }
 // function generateNextMove(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
 // }
-// let igrac = napraviPolje(-2,0,2,null,null)
-// let meta = napraviPolje(2,-2,0,null,null)
-// let sl = idi_pravo_ka_polju(igrac, meta, new Map<KeyType, ValueType>())
-// console.log("q:"+sl.q+" r:" + sl.r + " s:"+ sl.s)
+var igrac = napraviPolje(0, -3, 3, null, null);
+var meta = napraviPolje(0, 3, -3, null, null);
+while (napraviHash(igrac) != napraviHash(meta)) {
+    var sl = idi_pravo_ka_polju(igrac, meta, new Map());
+    igrac = sl;
+    console.log("q:" + sl.q + " r:" + sl.r + " s:" + sl.s);
+}
+// let mapa: Map<KeyType,boolean> = new Map<KeyType,boolean>();
+// mapa.set(getKeyType(napraviPolje(-2,-2,0, null, null)), true);
+// if(!mapa.has(getKeyType(napraviPolje(-2,-2,0, null, null))))
+//     console.log("jebem ti mamu")
