@@ -40,7 +40,7 @@ var node_fetch_1 = require("node-fetch");
 var methods_1 = require("./methods");
 var SERVER_IP = 'best1.aibg.best:9080';
 var MY_ID = 11;
-var GAME_ID = 28;
+var GAME_ID = 31;
 var main = function () { return __awaiter(void 0, void 0, void 0, function () {
     var inicijalnoStanje, mapa, i, drugi;
     return __generator(this, function (_a) {

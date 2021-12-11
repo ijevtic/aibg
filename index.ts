@@ -3,7 +3,7 @@ import { mapaVidljivihPolja } from "./methods"
 
 const SERVER_IP = 'best1.aibg.best:9080';
 const MY_ID = 11;
-const GAME_ID = 28;
+const GAME_ID = 31;
 
 
 

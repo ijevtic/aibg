@@ -174,24 +174,35 @@ function scanForEnemies(otherPlayers, npcs, res) {
         npcs.push(new types_1.Avatar(res.npc2));
     }
 }
-// function initStartPostion(res, mapa : Map<number, Polje>){
-//     switch(res.id){
-//         case 1:
-//             mapa.set(napraviHash(napraviPolje(-7,-7,14)), napraviPolje(-7,-7,14, null, "NORMAL"));
-//             break;
-//         case 2:
-//             mapa.set(getKeyTypeKoor(14,-7,-7), napraviPolje(14,-7,-7, null, "NORMAL"));
-//             break;
-//         case 3:
-//             mapa.set(getKeyTypeKoor(7,7,-14), napraviPolje(7,7,1-4, null, "NORMAL"));
-//             break;
-//         case 4:
-//             mapa.set(getKeyTypeKoor(-14,-14,7), napraviPolje(-14,7,7, null, "NORMAL"));
-//             break;    
-//     }
-// }
-// function generateNextMove(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
-// }
+function initStartPostion(res, mapa) {
+    switch (res.id) {
+        case 1:
+            mapa.set(napraviHash(napraviPolje(-7, -7, 14, null, "NORMAL")), napraviPolje(-7, -7, 14, null, "NORMAL"));
+            break;
+        case 2:
+            mapa.set(napraviHash(napraviPolje(14, -7, -7, null, "NORMAL")), napraviPolje(14, -7, -7, null, "NORMAL"));
+            break;
+        case 3:
+            mapa.set(napraviHash(napraviPolje(7, 7, -14, null, "NORMAL")), napraviPolje(7, 7, -14, null, "NORMAL"));
+            break;
+        case 4:
+            mapa.set(napraviHash(napraviPolje(-14, 7, 7, null, "NORMAL")), napraviPolje(-14, 7, 7, null, "NORMAL"));
+            break;
+    }
+}
+function drawMap(mapaVidljivih, nasaMapa) {
+    mapaVidljivih.forEach(function (element) {
+        var q = element.q, r = element.r, s = element.s, entity = element.entity, tileType = element.tileType;
+        var kljuc = napraviHash({ q: q, r: r, s: s, entity: entity, tileType: tileType });
+        var vrednost = { entity: entity, tileType: tileType };
+        if (!nasaMapa.has(kljuc)) {
+            nasaMapa.set(kljuc, vrednost);
+            drawFromSymmetry(element, nasaMapa);
+        }
+    });
+}
+function drawFromSymmetry(polje, nasaMapa) {
+}
 var igrac = napraviPolje(0, -3, 3, null, null);
 var meta = napraviPolje(0, 3, -3, null, null);
 while (napraviHash(igrac) != napraviHash(meta)) {
@@ -199,7 +210,3 @@ while (napraviHash(igrac) != napraviHash(meta)) {
     igrac = sl;
     console.log("q:" + sl.q + " r:" + sl.r + " s:" + sl.s);
 }
-// let mapa: Map<KeyType,boolean> = new Map<KeyType,boolean>();
-// mapa.set(getKeyType(napraviPolje(-2,-2,0, null, null)), true);
-// if(!mapa.has(getKeyType(napraviPolje(-2,-2,0, null, null))))
-//     console.log("jebem ti mamu")
