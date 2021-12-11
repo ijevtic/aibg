@@ -1,12 +1,91 @@
 "use strict";
 exports.__esModule = true;
-exports.getDirectionMain = exports.idiKaZastaviMain = exports.updateGlobal = void 0;
+exports.getDirectionMain = exports.idiKaZastaviMain = exports.updateGlobal = exports.odlucivac = exports.najblizaProdavnicaMain = void 0;
 var types_1 = require("./types");
+var index_1 = require("./index");
 var zastava = null;
 var prodavnice = [];
 var globalnaMapa = new Map();
 var igrac = null;
 var cnt = 0;
+var pare = 0;
+var hull = 0;
+var cannon = 0;
+function je_kod_prodze() {
+    var hahaha = false;
+    prodavnice.forEach(function (prodza) {
+        if (su_susedi(prodza, igrac)) {
+            hahaha = true;
+            ;
+        }
+    });
+    return hahaha;
+}
+function najblizaProdavnicaMain() {
+    return najbliza_prodavnica(igrac, globalnaMapa);
+}
+exports.najblizaProdavnicaMain = najblizaProdavnicaMain;
+function dalKupujem() {
+    if (hull == 2 && cannon == 2) {
+        return false;
+    }
+    if (pare >= 300) {
+        if (hull != 2) {
+            return true;
+        }
+        else if (cannon != 2) {
+            return true;
+        }
+    }
+    else if (pare >= 200) {
+        if (hull == 0) {
+            return true;
+        }
+        else if (cannon == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+function staKupujem() {
+    if (hull == 2 && cannon == 2) {
+        return -1;
+    }
+    if (pare >= 300) {
+        if (hull != 2) {
+            hull++;
+            return 3;
+        }
+        else if (cannon != 2) {
+            cannon++;
+            return 4;
+        }
+    }
+    else if (pare >= 200) {
+        if (hull == 0) {
+            hull++;
+            return 3;
+        }
+        else if (cannon == 0) {
+            cannon++;
+            return 4;
+        }
+    }
+    return -1;
+}
+function odlucivac() {
+    if (je_kod_prodze()) {
+        var stakup = staKupujem();
+        if (stakup != -1) {
+            return stakup;
+        }
+    }
+    if (dalKupujem() && prodavnice.length != 0) {
+        return 1;
+    }
+    return 2;
+}
+exports.odlucivac = odlucivac;
 function updateGlobal(response) {
     zastava = response.currFlag;
     // console.log(zastava);
@@ -14,16 +93,42 @@ function updateGlobal(response) {
     var filtriranaVidljiva = vidljivaPolja.filter(function (cur) { return true; });
     // globalnaMapa = new Map<number, ValueType>();
     filtriranaVidljiva.forEach(function (element) {
+        var nasao = false;
+        prodavnice.forEach(function (prodza) {
+            if (prodza.q == element.q && prodza.s == element.s && prodza.r == element.r) {
+                nasao = true;
+            }
+        });
+        if (!nasao && element.entity != null && element.entity.type == "ISLANDSHOP") {
+            prodavnice.push(element);
+        }
         if (globalnaMapa.has(napraviHash(element))) {
             globalnaMapa["delete"](napraviHash(element));
         }
         globalnaMapa.set(napraviHash(element), getValueType(element));
     });
-    console.log("!!!!!!!!");
-    console.log(JSON.stringify(globalnaMapa));
-    igrac = napraviPolje(response.player1.q, response.player1.r, response.player1.s, null, null);
+    // console.log("!!!!!!!!");
+    // console.log(JSON.stringify(globalnaMapa))
+    var player = dobij_igraca(response);
+    pare = player.money;
+    igrac = napraviPolje(player.q, player.r, player.s, null, null);
 }
 exports.updateGlobal = updateGlobal;
+function dobij_igraca(response) {
+    if (response.player1 && response.player1.id == index_1.MY_ID) {
+        return response.player1;
+    }
+    if (response.player2 && response.player2.id == index_1.MY_ID) {
+        return response.player2;
+    }
+    if (response.player3 && response.player3.id == index_1.MY_ID) {
+        return response.player3;
+    }
+    if (response.player4 && response.player4.id == index_1.MY_ID) {
+        return response.player4;
+    }
+    return response.player1;
+}
 function idiKaZastaviMain() {
     return idi_ka_zastavi(igrac, globalnaMapa);
 }
@@ -163,7 +268,7 @@ function bfs(nizPolja, mapa) {
             }
         }
     }
-    console.log("Obisao polja u bfs:" + duz + " " + praviD + " " + praviM);
+    // console.log("Obisao polja u bfs:" + duz + " " + praviD + " " + praviM);
     return mapaDist;
 }
 function idi_pravo_ka_polju(tr, cilj, mapa) {
@@ -185,14 +290,38 @@ function listaVidljivihPolja(response) {
 }
 function idi_ka_zastavi(tr, mapa) {
     var nizPolja = bfsKopno(zastava, mapa);
-    console.log("Odavde krece bfs");
-    console.log(JSON.stringify(nizPolja));
+    // console.log("Odavde krece bfs");
+    // console.log(JSON.stringify(nizPolja));
     var distMapa = bfs(nizPolja, mapa);
     var polje = najPolje(tr, distMapa, mapa, true, false);
-    console.log("!!!!!!distanca gore");
+    // console.log("!!!!!!distanca gore");
     // console.log("distanca" + dobijDist(polje, distMapa, true))
     return polje;
     return idi_pravo_ka_polju(tr, zastava, mapa);
+}
+function su_susedi(polje1, polje2) {
+    var deltaQ = polje1.q - polje2.q;
+    var deltaR = polje1.r - polje2.r;
+    var deltaS = polje1.s - polje2.s;
+    if (deltaQ == 0 && deltaS == 1 && deltaR == -1) {
+        return true;
+    }
+    else if (deltaQ == -1 && deltaS == 1 && deltaR == 0) {
+        return true;
+    }
+    else if (deltaQ == -1 && deltaS == 0 && deltaR == 1) {
+        return true;
+    }
+    else if (deltaQ == 0 && deltaS == -1 && deltaR == 1) {
+        return true;
+    }
+    else if (deltaQ == 1 && deltaS == -1 && deltaR == 0) {
+        return true;
+    }
+    else if (deltaQ == 1 && deltaS == 0 && deltaR == -1) {
+        return true;
+    }
+    return false;
 }
 function bezi_od_polja(tr, ne_cilj, mapa) {
     var nizCilj = [];
@@ -204,14 +333,17 @@ function bezi_od_polja(tr, ne_cilj, mapa) {
 }
 function najbliza_prodavnica(tr, mapa) {
     var nizCilj = [];
-    nizCilj[0] = tr;
+    nizCilj.push(tr);
     var distMapa = bfs(nizCilj, mapa);
     var najbliza = null;
     var dist = 100;
     for (var i = 0; i < prodavnice.length; i++) {
-        if (dobijDist(prodavnice[i], distMapa, true) < dist) {
-            najbliza = prodavnice[i];
-            dist = dobijDist(prodavnice[i], distMapa, true);
+        var dzoker = dobij_susedne(prodavnice[i], mapa, false);
+        for (var j = 0; j < dzoker.length; j++) {
+            if (dobijDist(dzoker[j], distMapa, true) < dist) {
+                najbliza = dzoker[j];
+                dist = dobijDist(dzoker[j], distMapa, true);
+            }
         }
     }
     return idi_pravo_ka_polju(tr, najbliza, mapa);

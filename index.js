@@ -36,28 +36,45 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
+exports.MY_ID = void 0;
 var node_fetch_1 = require("node-fetch");
 var methods_1 = require("./methods");
 var SERVER_IP = 'best1.aibg.best:9080';
-var MY_ID = 11;
-var GAME_ID = 89;
+exports.MY_ID = 11;
+var GAME_ID = 118;
 var main = function () { return __awaiter(void 0, void 0, void 0, function () {
     var inicijalnoStanje, i, poljeGdeIdemo, gdeIdemo, drugi;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/train?gameId=").concat(MY_ID).concat(GAME_ID, "&playerId=").concat(MY_ID, "&position=").concat(1))
+            case 0: return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/train?gameId=").concat(exports.MY_ID).concat(GAME_ID, "&playerId=").concat(exports.MY_ID, "&position=").concat(1))
                     .then(function (res) { return res.json(); })];
             case 1:
                 inicijalnoStanje = _a.sent();
                 (0, methods_1.updateGlobal)(inicijalnoStanje);
-                console.log("krenulo");
+                console.log("IGRAJ I POBEDI PONOSNO SE VRATI");
                 i = 0;
                 _a.label = 2;
             case 2:
                 if (!(i < 1250)) return [3 /*break*/, 5];
-                poljeGdeIdemo = (0, methods_1.idiKaZastaviMain)();
-                gdeIdemo = (0, methods_1.getDirectionMain)(poljeGdeIdemo);
-                return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/doAction?playerId=").concat(MY_ID, "&gameId=").concat(MY_ID).concat(GAME_ID, "&action=").concat(gdeIdemo))
+                poljeGdeIdemo = null;
+                gdeIdemo = null;
+                switch ((0, methods_1.odlucivac)()) {
+                    case 1:
+                        poljeGdeIdemo = (0, methods_1.najblizaProdavnicaMain)();
+                        gdeIdemo = (0, methods_1.getDirectionMain)(poljeGdeIdemo);
+                        break;
+                    case 2:
+                        poljeGdeIdemo = (0, methods_1.idiKaZastaviMain)();
+                        gdeIdemo = (0, methods_1.getDirectionMain)(poljeGdeIdemo);
+                        break;
+                    case 3:
+                        gdeIdemo = "buy-HULL";
+                        break;
+                    case 4:
+                        gdeIdemo = "buy-CANNONS";
+                        break;
+                }
+                return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/doAction?playerId=").concat(exports.MY_ID, "&gameId=").concat(exports.MY_ID).concat(GAME_ID, "&action=").concat(gdeIdemo))
                         .then(function (res) { return res.json(); })["catch"](function (err) { null; })];
             case 3:
                 drugi = _a.sent();

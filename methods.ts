@@ -1,10 +1,92 @@
 import { Polje, ValueType, Entity, KeyType, nextP, Avatar } from "./types";
+import {MY_ID} from "./index"
+import { response } from "express";
 
 let zastava: Polje = null;
 let prodavnice: Polje[] = [];
 let globalnaMapa: Map<number, ValueType> = new Map<number, ValueType>();
 let igrac: Polje = null;
 let cnt = 0;
+let pare = 0;
+let hull = 0;
+let cannon = 0;
+
+function je_kod_prodze():boolean{
+    let hahaha = false;
+    prodavnice.forEach(prodza => {
+        if(su_susedi(prodza,igrac)){
+            hahaha = true;;
+        }
+    })
+    return hahaha;
+}
+
+export function najblizaProdavnicaMain(){
+    return najbliza_prodavnica(igrac, globalnaMapa);
+}
+
+function dalKupujem(){
+    if(hull==2 && cannon==2){
+        return false;
+    }
+    if(pare>=300){
+        if(hull!=2){
+            return true;
+        }
+        else if(cannon!=2){
+            return true;
+        }
+    }
+    else if(pare>=200){
+        if(hull==0){
+            return true;
+        }
+        else if(cannon==0){
+            return true;
+        }
+    }
+    return false;
+}
+
+function staKupujem(){
+    if(hull==2 && cannon==2){
+        return -1;
+    }
+    if(pare>=300){
+        if(hull!=2){
+            hull++;
+            return 3;
+        }
+        else if(cannon!=2){
+            cannon++;
+            return 4;
+        }
+    }
+    else if(pare>=200){
+        if(hull==0){
+            hull++;
+            return 3;
+        }
+        else if(cannon==0){
+            cannon++;
+            return 4;
+        }
+    }
+    return -1;
+}
+
+export function odlucivac():number{
+    if(je_kod_prodze()){
+        const stakup = staKupujem();
+        if(stakup!=-1){
+            return stakup;
+        }
+    }
+    if(dalKupujem() && prodavnice.length!=0){
+        return 1;
+    }
+    return 2;
+}
 
 export function updateGlobal(response){
     zastava = response.currFlag;
@@ -13,14 +95,42 @@ export function updateGlobal(response){
     const filtriranaVidljiva = vidljivaPolja.filter(cur => true);
     // globalnaMapa = new Map<number, ValueType>();
     filtriranaVidljiva.forEach(element => {
+        let nasao = false;
+        prodavnice.forEach(prodza => {
+            if(prodza.q == element.q && prodza.s == element.s && prodza.r == element.r){
+                nasao = true;
+            }
+        });
+        if(!nasao &&  element.entity!=null && element.entity.type == "ISLANDSHOP"){
+            prodavnice.push(element);
+        }
         if(globalnaMapa.has(napraviHash(element))){
+
             globalnaMapa.delete(napraviHash(element));
         }
         globalnaMapa.set(napraviHash(element),getValueType(element))
     });
-    console.log("!!!!!!!!");
-    console.log(JSON.stringify(globalnaMapa))
-    igrac = napraviPolje(response.player1.q,response.player1.r,response.player1.s, null, null);
+    // console.log("!!!!!!!!");
+    // console.log(JSON.stringify(globalnaMapa))
+    const player = dobij_igraca(response);
+    pare = player.money;
+    igrac = napraviPolje(player.q, player.r, player.s, null, null);
+}
+
+function dobij_igraca(response){
+    if(response.player1 && response.player1.id == MY_ID){
+        return response.player1;
+    }
+    if(response.player2 && response.player2.id == MY_ID){
+        return response.player2;
+    }
+    if(response.player3 && response.player3.id == MY_ID){
+        return response.player3;
+    }
+    if(response.player4 && response.player4.id == MY_ID){
+        return response.player4;
+    }
+    return response.player1;
 }
 
 export function idiKaZastaviMain(): Polje{
@@ -174,7 +284,7 @@ function bfs(nizPolja: Polje[], mapa: Map<number, ValueType>): Map<number, numbe
         }
     }
     
-    console.log("Obisao polja u bfs:" + duz + " " + praviD + " " + praviM);
+    // console.log("Obisao polja u bfs:" + duz + " " + praviD + " " + praviM);
     return mapaDist;
 }
 
@@ -201,14 +311,39 @@ function listaVidljivihPolja(response):Polje[]{
 
 function idi_ka_zastavi(tr: Polje, mapa: Map<number, ValueType>): Polje{
     let nizPolja: Polje[] = bfsKopno(zastava,mapa);
-    console.log("Odavde krece bfs");
-    console.log(JSON.stringify(nizPolja));
+    // console.log("Odavde krece bfs");
+    // console.log(JSON.stringify(nizPolja));
     let distMapa: Map<number, number> = bfs(nizPolja, mapa);
     let polje: Polje = najPolje(tr, distMapa, mapa, true, false);
-    console.log("!!!!!!distanca gore");
+    // console.log("!!!!!!distanca gore");
     // console.log("distanca" + dobijDist(polje, distMapa, true))
     return polje;
     return idi_pravo_ka_polju(tr, zastava, mapa);
+}
+
+function su_susedi(polje1: Polje,polje2: Polje):boolean{
+    var deltaQ = polje1.q - polje2.q;
+    var deltaR = polje1.r - polje2.r;
+    var deltaS = polje1.s - polje2.s;
+    if (deltaQ == 0 && deltaS== 1 && deltaR == -1) {
+        return true;
+    }
+    else if (deltaQ == -1 && deltaS == 1 && deltaR == 0) {
+        return true;
+    }
+    else if (deltaQ == -1 && deltaS == 0 && deltaR == 1) {
+        return true;
+    }
+    else if (deltaQ == 0 && deltaS == -1 && deltaR == 1) {
+        return true;
+    }
+    else if (deltaQ == 1 && deltaS == -1 && deltaR == 0) {
+        return true;
+    }
+    else if (deltaQ == 1 && deltaS == 0 && deltaR == -1) {
+        return true;
+    }
+    return false;
 }
 
 function bezi_od_polja(tr: Polje, ne_cilj: Polje, mapa: Map<number, ValueType>): Polje{
@@ -222,14 +357,17 @@ function bezi_od_polja(tr: Polje, ne_cilj: Polje, mapa: Map<number, ValueType>):
 
 function najbliza_prodavnica(tr: Polje, mapa: Map<number, ValueType>): Polje{
     let nizCilj: Polje[] = [];
-    nizCilj[0] = tr;
+    nizCilj.push(tr);
     let distMapa: Map<number, number> = bfs(nizCilj, mapa);
     let najbliza: Polje = null;
     let dist = 100;
     for(let i = 0; i < prodavnice.length; i++){
-        if(dobijDist(prodavnice[i], distMapa, true) < dist){
-            najbliza = prodavnice[i];
-            dist = dobijDist(prodavnice[i], distMapa, true);
+        let dzoker = dobij_susedne(prodavnice[i],mapa,false);
+        for(let j = 0; j < dzoker.length; j++){
+            if(dobijDist(dzoker[j], distMapa, true) < dist){
+                najbliza = dzoker[j];
+                dist = dobijDist(dzoker[j], distMapa, true);
+            }
         }
     }
     return idi_pravo_ka_polju(tr, najbliza, mapa);
