@@ -195,27 +195,41 @@ function scanForEnemies(otherPlayers: Avatar[], npcs: Avatar[], res) : void{
         npcs.push(new Avatar(res.npc2));
     }
 }
-// function initStartPostion(res, mapa : Map<number, Polje>){
-//     switch(res.id){
-//         case 1:
-//             mapa.set(napraviHash(napraviPolje(-7,-7,14)), napraviPolje(-7,-7,14, null, "NORMAL"));
-//             break;
-//         case 2:
-//             mapa.set(getKeyTypeKoor(14,-7,-7), napraviPolje(14,-7,-7, null, "NORMAL"));
-//             break;
-//         case 3:
-//             mapa.set(getKeyTypeKoor(7,7,-14), napraviPolje(7,7,1-4, null, "NORMAL"));
-//             break;
-//         case 4:
-//             mapa.set(getKeyTypeKoor(-14,-14,7), napraviPolje(-14,7,7, null, "NORMAL"));
-//             break;    
+
+function initStartPostion(res, mapa : Map<number, Polje>){
+    switch(res.id){
+        case 1:
+            mapa.set(napraviHash(napraviPolje(-7,-7,14, null, "NORMAL")), napraviPolje(-7,-7,14, null, "NORMAL"));
+            break;
+        case 2:
+            mapa.set(napraviHash(napraviPolje(14,-7,-7, null, "NORMAL")), napraviPolje(14,-7,-7, null, "NORMAL"));
+            break;
+        case 3:
+            mapa.set(napraviHash(napraviPolje(7,7,-14, null, "NORMAL")), napraviPolje(7,7,-14, null, "NORMAL"));
+            break;
+        case 4:
+            mapa.set(napraviHash(napraviPolje(-14,7,7, null, "NORMAL")), napraviPolje(-14,7,7, null, "NORMAL"));
+            break;    
         
-//     }
-// }
+    }
+}
 
+function drawMap(mapaVidljivih : Map<number, ValueType>, nasaMapa : Map<number, ValueType>):void{
+    mapaVidljivih.forEach((element: Polje) => {
+        const {q, r, s, entity, tileType}  = element;
+        const kljuc:number = napraviHash({q, r, s, entity, tileType});
+        const vrednost:ValueType = {entity, tileType};
+        if(!nasaMapa.has(kljuc)){
+            nasaMapa.set(kljuc,vrednost);
+            drawFromSymmetry(element, nasaMapa);
+        }
+    });
+}
 
-// function generateNextMove(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
-// }
+function drawFromSymmetry(polje : Polje, nasaMapa : Map<number, ValueType>):void{
+
+}
+
 let igrac:Polje = napraviPolje(0,-3,3,null,null)
 let meta = napraviPolje(0,3,-3,null,null)
 while(napraviHash(igrac) != napraviHash(meta))
@@ -224,8 +238,3 @@ while(napraviHash(igrac) != napraviHash(meta))
     igrac = sl
     console.log("q:"+sl.q+" r:" + sl.r + " s:"+ sl.s)
 }
-
-// let mapa: Map<KeyType,boolean> = new Map<KeyType,boolean>();
-// mapa.set(getKeyType(napraviPolje(-2,-2,0, null, null)), true);
-// if(!mapa.has(getKeyType(napraviPolje(-2,-2,0, null, null))))
-//     console.log("jebem ti mamu")
