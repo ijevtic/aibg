@@ -80,7 +80,7 @@ function vratiIdNapada() {
 }
 exports.vratiIdNapada = vratiIdNapada;
 function odlucivac() {
-    var idNapada = dalNapadamo();
+    idNapada = dalNapadamo();
     if (idNapada != -1) {
         return 5;
     }
@@ -102,6 +102,8 @@ function dalNapadamo() {
     var mapDist = bfs(lav, globalnaMapa);
     for (var _i = 0, igraci_1 = igraci; _i < igraci_1.length; _i++) {
         var player = igraci_1[_i];
+        console.log("trenutni igrac");
+        console.log(player);
         if (dobijDist(napraviPoljeOdAvatara(player), mapDist, true) <= 2) {
             return player.id;
         }
@@ -128,11 +130,11 @@ function updateGlobal(response) {
     // console.log(zastava);
     var vidljivaPolja = listaVidljivihPolja(response);
     igraci = scanForEnemies(response);
+    // console.log("ovo su igraci"+JSON.stringify(igraci));
     var filtriranaVidljiva = vidljivaPolja.filter(function (cur) { return true; });
     // globalnaMapa = new Map<number, ValueType>();
     filtriranaVidljiva.forEach(function (element) {
         var nasao = false;
-        console.log(element);
         prodavnice.forEach(function (prodza) {
             if (prodza.q == element.q && prodza.s == element.s && prodza.r == element.r) {
                 nasao = true;
@@ -391,15 +393,23 @@ function scanForEnemies(res) {
     var otherPlayers = [];
     if (res.player1 && res.player1.id != index_1.MY_ID && res.player1.health > 0) {
         otherPlayers.push(createAvatar(res.player1));
+        console.log(res.player1.id);
+        console.log("ID IGRACAAAAAA");
     }
     if (res.player2 && res.player2.id != index_1.MY_ID && res.player2.health > 0) {
         otherPlayers.push(createAvatar(res.player2));
+        console.log(res.player2.id);
+        console.log("ID IGRACAAAAAA");
     }
     if (res.player3 && res.player3.id != index_1.MY_ID && res.player3.health > 0) {
         otherPlayers.push(createAvatar(res.player3));
+        console.log(res.player3.id);
+        console.log("ID IGRACAAAAAA");
     }
     if (res.player4 && res.player4.id != index_1.MY_ID && res.player4.health > 0) {
         otherPlayers.push(createAvatar(res.player4));
+        console.log(res.player4.id);
+        console.log("ID IGRACAAAAAA");
     }
     if (res.npc1 && res.npc1.health > 0) {
         otherPlayers.push(createAvatar(res.npc1));

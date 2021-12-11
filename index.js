@@ -41,16 +41,16 @@ var node_fetch_1 = require("node-fetch");
 var methods_1 = require("./methods");
 var SERVER_IP = 'best1.aibg.best:9080';
 exports.MY_ID = 11;
-var GAME_ID = 202;
+var GAME_ID = 136;
 var main = function () { return __awaiter(void 0, void 0, void 0, function () {
     var inicijalnoStanje, i, poljeGdeIdemo, gdeIdemo, odluka, drugi;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, node_fetch_1["default"]("http://" + SERVER_IP + "/train?gameId=" + exports.MY_ID + GAME_ID + "&playerId=" + exports.MY_ID + "&position=" + 1)
+            case 0: return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/train?gameId=").concat(exports.MY_ID).concat(GAME_ID, "&playerId=").concat(exports.MY_ID, "&position=").concat(1))
                     .then(function (res) { return res.json(); })];
             case 1:
                 inicijalnoStanje = _a.sent();
-                methods_1.updateGlobal(inicijalnoStanje);
+                (0, methods_1.updateGlobal)(inicijalnoStanje);
                 console.log("IGRAJ I POBEDI PONOSNO SE VRATI");
                 i = 0;
                 _a.label = 2;
@@ -58,15 +58,15 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                 if (!(i < 1250)) return [3 /*break*/, 5];
                 poljeGdeIdemo = null;
                 gdeIdemo = null;
-                odluka = methods_1.odlucivac();
+                odluka = (0, methods_1.odlucivac)();
                 switch (odluka) {
                     case 1:
-                        poljeGdeIdemo = methods_1.najblizaProdavnicaMain();
-                        gdeIdemo = methods_1.getDirectionMain(poljeGdeIdemo);
+                        poljeGdeIdemo = (0, methods_1.najblizaProdavnicaMain)();
+                        gdeIdemo = (0, methods_1.getDirectionMain)(poljeGdeIdemo);
                         break;
                     case 2:
-                        poljeGdeIdemo = methods_1.idiKaZastaviMain();
-                        gdeIdemo = methods_1.getDirectionMain(poljeGdeIdemo);
+                        poljeGdeIdemo = (0, methods_1.idiKaZastaviMain)();
+                        gdeIdemo = (0, methods_1.getDirectionMain)(poljeGdeIdemo);
                         break;
                     case 3:
                         gdeIdemo = "buy-HULL";
@@ -75,10 +75,12 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                         gdeIdemo = "buy-CANNONS";
                         break;
                     case 5:
-                        gdeIdemo = "atk-" + methods_1.vratiIdNapada();
+                        console.log("napadanjeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+                        gdeIdemo = "atk-" + (0, methods_1.vratiIdNapada)();
+                        console.log(gdeIdemo);
                         break;
                 }
-                return [4 /*yield*/, node_fetch_1["default"]("http://" + SERVER_IP + "/doAction?playerId=" + exports.MY_ID + "&gameId=" + exports.MY_ID + GAME_ID + "&action=" + gdeIdemo)
+                return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/doAction?playerId=").concat(exports.MY_ID, "&gameId=").concat(exports.MY_ID).concat(GAME_ID, "&action=").concat(gdeIdemo))
                         .then(function (res) { return res.json(); })["catch"](function (err) { null; })];
             case 3:
                 drugi = _a.sent();
@@ -86,7 +88,7 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                     return [3 /*break*/, 4];
                 }
                 console.log(drugi);
-                methods_1.updateGlobal(drugi);
+                (0, methods_1.updateGlobal)(drugi);
                 _a.label = 4;
             case 4:
                 i++;

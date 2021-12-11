@@ -3,8 +3,8 @@ import { updateGlobal, odlucivac, getDirectionMain, najblizaProdavnicaMain, idiK
 import { Polje } from './types';
 
 const SERVER_IP = 'best1.aibg.best:9080';
-export const MY_ID = 11;
-const GAME_ID = 202;
+export const MY_ID: number = 11;
+const GAME_ID = 136;
 
 
 
@@ -44,7 +44,6 @@ const main = async () => {
         if(drugi == null){
             continue;
         }
-        console.log(drugi);
         updateGlobal(drugi)
     }
 }

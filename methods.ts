@@ -81,7 +81,7 @@ export function vratiIdNapada():number{
     return idNapada;
 }
 export function odlucivac():number{
-    let idNapada=dalNapadamo();
+    idNapada=dalNapadamo();
     if(idNapada!=-1){
         return 5;
     }
@@ -126,12 +126,12 @@ export function updateGlobal(response){
     // console.log(zastava);
     const vidljivaPolja = listaVidljivihPolja(response);
     igraci = scanForEnemies(response);
+    // console.log("ovo su igraci"+JSON.stringify(igraci));
 
     const filtriranaVidljiva = vidljivaPolja.filter(cur => true);
     // globalnaMapa = new Map<number, ValueType>();
     filtriranaVidljiva.forEach(element => {
         let nasao = false;
-        console.log(element);
         prodavnice.forEach(prodza => {
             if(prodza.q == element.q && prodza.s == element.s && prodza.r == element.r){
                 nasao = true;
@@ -413,15 +413,19 @@ function scanForEnemies(res) :Avatar[] {
     const otherPlayers:Avatar[]=[];
     if(res.player1 && res.player1.id!=MY_ID && res.player1.health > 0){
         otherPlayers.push(createAvatar(res.player1));
+
     }
     if(res.player2 && res.player2.id!=MY_ID && res.player2.health > 0){
         otherPlayers.push(createAvatar(res.player2));
+
     }
     if(res.player3 && res.player3.id!=MY_ID && res.player3.health > 0){
         otherPlayers.push(createAvatar(res.player3));
+
     }
     if(res.player4 &&  res.player4.id!=MY_ID && res.player4.health > 0){
         otherPlayers.push(createAvatar(res.player4));
+
     }
     if(res.npc1 && res.npc1.health > 0){
         otherPlayers.push(createAvatar(res.npc1));
