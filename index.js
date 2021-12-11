@@ -40,34 +40,37 @@ var node_fetch_1 = require("node-fetch");
 var methods_1 = require("./methods");
 var SERVER_IP = 'best1.aibg.best:9080';
 var MY_ID = 11;
-var GAME_ID = 37;
+var GAME_ID = 89;
 var main = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var inicijalnoStanje, nesto, mapa, i, drugi;
+    var inicijalnoStanje, i, poljeGdeIdemo, gdeIdemo, drugi;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/train?gameId=").concat(MY_ID).concat(GAME_ID, "&playerId=").concat(MY_ID, "&position=").concat(1))
                     .then(function (res) { return res.json(); })];
             case 1:
                 inicijalnoStanje = _a.sent();
-                return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/game/play?playerId=").concat(23, "&gameId=").concat(MY_ID).concat(GAME_ID))
-                        .then(function (res) { return res.json(); })];
-            case 2:
-                nesto = _a.sent();
-                mapa = (0, methods_1.mapaVidljivihPolja)(inicijalnoStanje);
+                (0, methods_1.updateGlobal)(inicijalnoStanje);
+                console.log("krenulo");
                 i = 0;
-                _a.label = 3;
+                _a.label = 2;
+            case 2:
+                if (!(i < 1250)) return [3 /*break*/, 5];
+                poljeGdeIdemo = (0, methods_1.idiKaZastaviMain)();
+                gdeIdemo = (0, methods_1.getDirectionMain)(poljeGdeIdemo);
+                return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/doAction?playerId=").concat(MY_ID, "&gameId=").concat(MY_ID).concat(GAME_ID, "&action=").concat(gdeIdemo))
+                        .then(function (res) { return res.json(); })["catch"](function (err) { null; })];
             case 3:
-                if (!(i < 20)) return [3 /*break*/, 6];
-                return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/doAction?playerId=").concat(23, "&gameId=").concat(MY_ID).concat(GAME_ID, "&action=").concat("se"))
-                        .then(function (res) { return res.json(); })];
-            case 4:
                 drugi = _a.sent();
-                console.log(drugi);
-                _a.label = 5;
-            case 5:
+                if (drugi == null) {
+                    return [3 /*break*/, 4];
+                }
+                // console.log(drugi);
+                (0, methods_1.updateGlobal)(drugi);
+                _a.label = 4;
+            case 4:
                 i++;
-                return [3 /*break*/, 3];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 2];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

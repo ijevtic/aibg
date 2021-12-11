@@ -2,6 +2,30 @@ import { Polje, ValueType, Entity, KeyType, nextP, Avatar } from "./types";
 
 let zastava: Polje = null;
 let prodavnice: Polje[] = [];
+let globalnaMapa: Map<number, ValueType> = new Map<number, ValueType>();
+let igrac: Polje = null;
+let cnt = 0;
+
+export function updateGlobal(response){
+    zastava = response.currFlag;
+    // console.log(zastava);
+    const vidljivaPolja = listaVidljivihPolja(response);
+    const filtriranaVidljiva = vidljivaPolja.filter(cur => true);
+    // globalnaMapa = new Map<number, ValueType>();
+    filtriranaVidljiva.forEach(element => {
+        if(globalnaMapa.has(napraviHash(element))){
+            globalnaMapa.delete(napraviHash(element));
+        }
+        globalnaMapa.set(napraviHash(element),getValueType(element))
+    });
+    console.log("!!!!!!!!");
+    console.log(JSON.stringify(globalnaMapa))
+    igrac = napraviPolje(response.player1.q,response.player1.r,response.player1.s, null, null);
+}
+
+export function idiKaZastaviMain(): Polje{
+    return idi_ka_zastavi(igrac, globalnaMapa);
+}
 
 function poljeUMapi(tr: Polje): boolean{
     return Math.abs(tr.q) <= 14
@@ -49,11 +73,10 @@ function napraviPolje(q: number, r: number, s: number, entity: Entity, tileType:
     return polje;
 }
 
-function probajSusedni(q: number, r: number, s: number, mapa: Map<number, ValueType>,
-     kopno:boolean): boolean{
+function probajSusedni(q: number, r: number, s: number, mapa: Map<number, ValueType>,kopno:boolean): boolean{
     let polje: Polje = napraviPolje(q,r,s,null, null);
     if(kopno) return kopnoPolje(polje, mapa);
-    return prohodnoPolje(polje, mapa,);
+    return prohodnoPolje(polje, mapa);
 }
 
 function dobij_susedne(tr: Polje, mapa: Map<number, ValueType>, kopno:boolean): Polje[]{
@@ -83,6 +106,7 @@ function najPolje(tr:Polje, mapaDist:Map<number, number>, mapa: Map<number, Valu
             res = susedni[i];
         }
     }
+    // console.log(best);
     return res;
 
 }
@@ -98,9 +122,7 @@ function dobijDist(tr:Polje, mapaDist: Map<number, number>, najblize: boolean): 
 
 function bfsKopno(poc:Polje, mapa: Map<number, ValueType>): Polje[]{
     let mapaDist: Map<number, number> = new Map<number, number>();
-    let nizPoc: Polje[] = [];
     let d = 0;
-    nizPoc[d++] = poc;
     let qu: Polje[] = [];
     let br = 0;
     qu.push(poc);
@@ -112,13 +134,13 @@ function bfsKopno(poc:Polje, mapa: Map<number, ValueType>): Polje[]{
         for(let i = 0; i < susedni.length; i++){
             let kljuc:number = napraviHash(susedni[i]);
             if(!mapaDist.has(kljuc) && kopnoPolje(susedni[i], mapa)) {
-                qu[duz++] = susedni[i];
+                qu.push(susedni[i]);
+                duz++;
                 mapaDist.set(kljuc, 0);
-                nizPoc[d++] = susedni[i];
             }
         }
     }
-    return nizPoc;
+    return qu;
 }
 
 function bfs(nizPolja: Polje[], mapa: Map<number, ValueType>): Map<number, number>{
@@ -126,8 +148,14 @@ function bfs(nizPolja: Polje[], mapa: Map<number, ValueType>): Map<number, numbe
     let qu: Polje[] = nizPolja;
     let duz = qu.length;
     let br = 0;
+    let praviD = 0;
+    let praviM = 0;
     for(let i = 0; i < qu.length; i++)
         mapaDist.set(napraviHash(qu[i]),0);
+    
+        mapaDist.forEach((value: number, key: number) => {
+            if(value != 0) praviM++;
+        });
     while(br < duz) {
         let tr = qu[br++];
         let susedni: Polje[] = dobij_susedne(tr, mapa, false);
@@ -136,13 +164,17 @@ function bfs(nizPolja: Polje[], mapa: Map<number, ValueType>): Map<number, numbe
             let kljuc:number = napraviHash(susedni[i]);
             if(!mapaDist.has(kljuc) && prohodnoPolje(susedni[i], mapa))
             {
-                let closest: Polje = najPolje(susedni[i], mapaDist, mapa, true, false);
-                mapaDist.set(kljuc, dobijDist(closest,mapaDist,true)+1);
-                qu[duz++] = susedni[i];
+                // let closest: Polje = najPolje(susedni[i], mapaDist, mapa, true, false);
+                mapaDist.set(kljuc, dobijDist(tr,mapaDist,true)+1);
+                if(dobijDist(tr,mapaDist,true)+1 < 1000) praviD++;
+                qu.push(susedni[i]);
+                duz++;
                 // console.log(br + " " + duz);
             }
         }
     }
+    
+    console.log("Obisao polja u bfs:" + duz + " " + praviD + " " + praviM);
     return mapaDist;
 }
 
@@ -152,7 +184,7 @@ function idi_pravo_ka_polju(tr: Polje, cilj: Polje, mapa: Map<number, ValueType>
     nizCilj[0] = cilj;
     let distMapa: Map<number, number> = bfs(nizCilj, mapa);
     let polje: Polje = najPolje(tr, distMapa, mapa, true, false);
-    console.log("distanca" + dobijDist(polje, distMapa, true))
+    // console.log("distanca" + dobijDist(polje, distMapa, true))
     return polje;
 }
 
@@ -160,24 +192,21 @@ function vratiZastavu(response):Polje{
     return response.currFlag;
 }
 
-export function mapaVidljivihPolja(response):Map<number, ValueType>{
+function listaVidljivihPolja(response):Polje[]{
     const mapa:Map<number,ValueType> = new Map<number,ValueType>();
-    const listaPolja = response.map.tiles.flat();
-    const samoVidljiva = listaPolja.filter(cur => Object.keys(cur).length !== 0);
-    samoVidljiva.forEach((element: Polje) => {
-        const {q, r, s, entity, tileType}  = element;
-        const kljuc:number = napraviHash({q, r, s, entity, tileType});
-        const vrednost:ValueType = {entity, tileType};
-        mapa.set(kljuc,vrednost);
-    });
-    return mapa;
+    const listaPolja: Polje[] = response.map.tiles.flat();
+    const samoVidljiva: Polje[] = listaPolja.filter(cur => Object.keys(cur).length !== 0);
+    return samoVidljiva;
 }
 
 function idi_ka_zastavi(tr: Polje, mapa: Map<number, ValueType>): Polje{
     let nizPolja: Polje[] = bfsKopno(zastava,mapa);
+    console.log("Odavde krece bfs");
+    console.log(JSON.stringify(nizPolja));
     let distMapa: Map<number, number> = bfs(nizPolja, mapa);
     let polje: Polje = najPolje(tr, distMapa, mapa, true, false);
-    console.log("distanca" + dobijDist(polje, distMapa, true))
+    console.log("!!!!!!distanca gore");
+    // console.log("distanca" + dobijDist(polje, distMapa, true))
     return polje;
     return idi_pravo_ka_polju(tr, zastava, mapa);
 }
@@ -264,44 +293,45 @@ function drawFromSymmetry(polje : Polje, nasaMapa : Map<number, ValueType>):void
 // function generateNextMove(tr: Polje, mapa: Map<KeyType, ValueType>): Polje{
 // }
 
-zastava = napraviPolje(0,-2,2,null, null);
-let p1: Polje = napraviPolje(1,-2,1,null, "ISLAND");
-let p2: Polje = napraviPolje(1,-1,0,null, "ISLAND");
-let p3: Polje = napraviPolje(1,0,-1,null, "ISLAND");
-let p4: Polje = napraviPolje(1,1,-2,null, "ISLAND");
-let p5: Polje = napraviPolje(0,2,-2,null, "ISLAND");
-let mapa : Map<number, ValueType> = new Map<number, ValueType>();
-mapa.set(napraviHash(p1), getValueType(p1))
-mapa.set(napraviHash(p2), getValueType(p2))
-mapa.set(napraviHash(p3), getValueType(p3))
-mapa.set(napraviHash(p4), getValueType(p4))
-mapa.set(napraviHash(p5), getValueType(p5))
-function testMetoda(){
-    let igrac:Polje = napraviPolje(-1,2,-1,null,null)
-    // let meta = napraviPolje(0,3,-3,null,null)
-    while(napraviHash(igrac) != napraviHash(zastava))
-    {
-        let sl:Polje = idi_ka_zastavi(igrac, mapa)
-        igrac = sl
-        console.log("q:"+sl.q+" r:" + sl.r + " s:"+ sl.s)
-    }
-}
+// zastava = napraviPolje(-1,-2,3,null, null);
+// let p1: Polje = napraviPolje(0,0,0,null, "ISLAND");
+// // let p2: Polje = napraviPolje(1,-1,0,null, "ISLAND");
+// // let p3: Polje = napraviPolje(1,0,-1,null, "ISLAND");
+// // let p4: Polje = napraviPolje(1,1,-2,null, "ISLAND");
+// // let p5: Polje = napraviPolje(0,2,-2,null, "ISLAND");
+// let mapa : Map<number, ValueType> = new Map<number, ValueType>();
+//  mapa.set(napraviHash(p1), getValueType(p1))
+// // mapa.set(napraviHash(p2), getValueType(p2))
+// // mapa.set(napraviHash(p3), getValueType(p3))
+// // mapa.set(napraviHash(p4), getValueType(p4))
+// // mapa.set(napraviHash(p5), getValueType(p5))
+// function testMetoda(){
+//     let igrac:Polje = napraviPolje(1,2,-3,null,null)
+//     // let meta = napraviPolje(0,3,-3,null,null)
+//     while(napraviHash(igrac) != napraviHash(zastava))
+//     {
+//         let sl:Polje = idi_ka_zastavi(igrac, mapa);
+//         console.log(getDirection(sl,igrac));
+//         igrac = sl
+//         console.log("q:"+sl.q+" r:" + sl.r + " s:"+ sl.s)
+//     }
+// }
 
-testMetoda()
+// testMetoda()
 // let mapa: Map<KeyType,boolean> = new Map<KeyType,boolean>();
 // mapa.set(getKeyType(napraviPolje(-2,-2,0, null, null)), true);
 // if(!mapa.has(getKeyType(napraviPolje(-2,-2,0, null, null))))
 //     console.log("jebem ti mamu")
-let igrac:Polje = napraviPolje(0,-3,3,null,null)
-let meta = napraviPolje(0,3,-3,null,null)
-while(napraviHash(igrac) != napraviHash(meta))
-{
-    let sl:Polje = idi_pravo_ka_polju(igrac, meta, new Map<number, ValueType>())
-    igrac = sl
-    console.log("q:"+sl.q+" r:" + sl.r + " s:"+ sl.s)
-}
+// let igrac:Polje = napraviPolje(0,-3,3,null,null)
+// let meta = napraviPolje(0,3,-3,null,null)
+// while(napraviHash(igrac) != napraviHash(meta))
+// {
+//     let sl:Polje = idi_pravo_ka_polju(igrac, meta, new Map<number, ValueType>())
+//     igrac = sl
+//     console.log("q:"+sl.q+" r:" + sl.r + " s:"+ sl.s)
+// }
 
-function getDirection(target, current) {
+function getDirection(target, current):string {
     var deltaQ = target.q - current.q;
     var deltaR = target.r - current.r;
     var deltaS = target.s - current.s;
@@ -325,4 +355,9 @@ function getDirection(target, current) {
     }
     console.log("NEVALIDNA KOORDINATA!!!!!");
     return "";
+}
+
+export function getDirectionMain(target): string{
+    // console.log(target,igrac);
+    return getDirection(target, igrac);
 }
