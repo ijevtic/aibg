@@ -1,10 +1,10 @@
 import fetch from 'node-fetch';
-import { updateGlobal, odlucivac, getDirectionMain, najblizaProdavnicaMain, idiKaZastaviMain } from './methods';
+import { updateGlobal, odlucivac, getDirectionMain, najblizaProdavnicaMain, idiKaZastaviMain , vratiIdNapada} from './methods';
 import { Polje } from './types';
 
 const SERVER_IP = 'best1.aibg.best:9080';
 export const MY_ID = 11;
-const GAME_ID = 118;
+const GAME_ID = 202;
 
 
 
@@ -17,7 +17,8 @@ const main = async () => {
     for (let i = 0; i < 1250; i++) {
         let poljeGdeIdemo: Polje = null;
         let gdeIdemo:string = null;
-        switch(odlucivac()){
+        let odluka=odlucivac()
+        switch(odluka){
             case 1:
                 poljeGdeIdemo = najblizaProdavnicaMain();
                 gdeIdemo = getDirectionMain(poljeGdeIdemo);
@@ -32,6 +33,10 @@ const main = async () => {
             case 4:
                 gdeIdemo = "buy-CANNONS";
                 break;
+            case 5:
+                gdeIdemo = "atk-"+vratiIdNapada();
+                break;
+
         }
         const drugi = await fetch(`http://${SERVER_IP}/doAction?playerId=${MY_ID}&gameId=${MY_ID}${GAME_ID}&action=${gdeIdemo}`)
             .then(res => res.json())
@@ -39,7 +44,7 @@ const main = async () => {
         if(drugi == null){
             continue;
         }
-        // console.log(drugi);
+        console.log(drugi);
         updateGlobal(drugi)
     }
 }

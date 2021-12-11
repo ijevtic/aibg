@@ -1,10 +1,11 @@
 "use strict";
 exports.__esModule = true;
-exports.getDirectionMain = exports.idiKaZastaviMain = exports.updateGlobal = exports.odlucivac = exports.najblizaProdavnicaMain = void 0;
+exports.getDirectionMain = exports.idiKaZastaviMain = exports.updateGlobal = exports.dalNapadamo = exports.odlucivac = exports.vratiIdNapada = exports.najblizaProdavnicaMain = void 0;
 var types_1 = require("./types");
 var index_1 = require("./index");
 var zastava = null;
 var prodavnice = [];
+var igraci = [];
 var globalnaMapa = new Map();
 var igrac = null;
 var cnt = 0;
@@ -73,7 +74,16 @@ function staKupujem() {
     }
     return -1;
 }
+var idNapada;
+function vratiIdNapada() {
+    return idNapada;
+}
+exports.vratiIdNapada = vratiIdNapada;
 function odlucivac() {
+    var idNapada = dalNapadamo();
+    if (idNapada != -1) {
+        return 5;
+    }
     if (je_kod_prodze()) {
         var stakup = staKupujem();
         if (stakup != -1) {
@@ -86,14 +96,43 @@ function odlucivac() {
     return 2;
 }
 exports.odlucivac = odlucivac;
+function dalNapadamo() {
+    var lav = [];
+    lav.push(igrac);
+    var mapDist = bfs(lav, globalnaMapa);
+    for (var _i = 0, igraci_1 = igraci; _i < igraci_1.length; _i++) {
+        var player = igraci_1[_i];
+        if (dobijDist(napraviPoljeOdAvatara(player), mapDist, true) <= 2) {
+            return player.id;
+        }
+    }
+    return -1;
+}
+exports.dalNapadamo = dalNapadamo;
+function napraviPoljeOdAvatara(avatar) {
+    var q = avatar.q, r = avatar.r, s = avatar.s;
+    var polje = {
+        q: q,
+        r: r,
+        s: s,
+        entity: null,
+        tileType: null
+    };
+    return polje;
+}
 function updateGlobal(response) {
+    if (!response || !response.currFlag) {
+        return;
+    }
     zastava = response.currFlag;
     // console.log(zastava);
     var vidljivaPolja = listaVidljivihPolja(response);
+    igraci = scanForEnemies(response);
     var filtriranaVidljiva = vidljivaPolja.filter(function (cur) { return true; });
     // globalnaMapa = new Map<number, ValueType>();
     filtriranaVidljiva.forEach(function (element) {
         var nasao = false;
+        console.log(element);
         prodavnice.forEach(function (prodza) {
             if (prodza.q == element.q && prodza.s == element.s && prodza.r == element.r) {
                 nasao = true;
@@ -348,25 +387,45 @@ function najbliza_prodavnica(tr, mapa) {
     }
     return idi_pravo_ka_polju(tr, najbliza, mapa);
 }
-function scanForEnemies(otherPlayers, npcs, res) {
-    if (res.player1) {
-        otherPlayers.push(new types_1.Avatar(res.player1));
+function scanForEnemies(res) {
+    var otherPlayers = [];
+    if (res.player1 && res.player1.id != index_1.MY_ID && res.player1.health > 0) {
+        otherPlayers.push(createAvatar(res.player1));
     }
-    if (res.player2) {
-        otherPlayers.push(new types_1.Avatar(res.player2));
+    if (res.player2 && res.player2.id != index_1.MY_ID && res.player2.health > 0) {
+        otherPlayers.push(createAvatar(res.player2));
     }
-    if (res.player3) {
-        otherPlayers.push(new types_1.Avatar(res.player3));
+    if (res.player3 && res.player3.id != index_1.MY_ID && res.player3.health > 0) {
+        otherPlayers.push(createAvatar(res.player3));
     }
-    if (res.player4) {
-        otherPlayers.push(new types_1.Avatar(res.player4));
+    if (res.player4 && res.player4.id != index_1.MY_ID && res.player4.health > 0) {
+        otherPlayers.push(createAvatar(res.player4));
     }
-    if (res.npc1) {
-        npcs.push(new types_1.Avatar(res.npc1));
+    if (res.npc1 && res.npc1.health > 0) {
+        otherPlayers.push(createAvatar(res.npc1));
     }
-    if (res.npc2) {
-        npcs.push(new types_1.Avatar(res.npc2));
+    if (res.npc2 && res.npc2.health > 0) {
+        otherPlayers.push(createAvatar(res.npc2));
     }
+    return otherPlayers;
+}
+function createAvatar(player) {
+    var avatar = {
+        id: player.id,
+        health: player._health,
+        maxHealth: player._maxHealth,
+        money: player.money,
+        q: player.q,
+        r: player.r,
+        s: player.s,
+        cannons: player.cannons,
+        paralysed: player.paralysed,
+        whirlPoolDuration: player.whirlPoolDuration,
+        potNums: player.potNums,
+        illegalMoves: player.illegalMoves,
+        sight: player.sight
+    };
+    return avatar;
 }
 function initStartPostion(res, mapa) {
     switch (res.id) {

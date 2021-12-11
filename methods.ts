@@ -4,6 +4,7 @@ import { response } from "express";
 
 let zastava: Polje = null;
 let prodavnice: Polje[] = [];
+let igraci:Avatar[]=[];
 let globalnaMapa: Map<number, ValueType> = new Map<number, ValueType>();
 let igrac: Polje = null;
 let cnt = 0;
@@ -74,8 +75,16 @@ function staKupujem(){
     }
     return -1;
 }
+let idNapada;
 
+export function vratiIdNapada():number{
+    return idNapada;
+}
 export function odlucivac():number{
+    let idNapada=dalNapadamo();
+    if(idNapada!=-1){
+        return 5;
+    }
     if(je_kod_prodze()){
         const stakup = staKupujem();
         if(stakup!=-1){
@@ -87,15 +96,42 @@ export function odlucivac():number{
     }
     return 2;
 }
-
+export function dalNapadamo(){
+   let lav:Polje[]=[];
+   lav.push(igrac);
+   let mapDist=bfs(lav,globalnaMapa);
+   for(let player of igraci){
+       if(dobijDist(napraviPoljeOdAvatara(player),mapDist,true)<=2){
+           return player.id;
+       }
+   }
+   return -1;
+}
+function napraviPoljeOdAvatara(avatar:Avatar):Polje{
+    let {q,r,s} = avatar;
+    let polje:Polje={
+        q: q,
+        r: r,
+        s: s,
+        entity: null,
+        tileType: null,
+    }
+    return polje;
+}
 export function updateGlobal(response){
+    if(!response || !response.currFlag){
+        return;
+    }
     zastava = response.currFlag;
     // console.log(zastava);
     const vidljivaPolja = listaVidljivihPolja(response);
+    igraci = scanForEnemies(response);
+
     const filtriranaVidljiva = vidljivaPolja.filter(cur => true);
     // globalnaMapa = new Map<number, ValueType>();
     filtriranaVidljiva.forEach(element => {
         let nasao = false;
+        console.log(element);
         prodavnice.forEach(prodza => {
             if(prodza.q == element.q && prodza.s == element.s && prodza.r == element.r){
                 nasao = true;
@@ -373,27 +409,46 @@ function najbliza_prodavnica(tr: Polje, mapa: Map<number, ValueType>): Polje{
     return idi_pravo_ka_polju(tr, najbliza, mapa);
 }
 
-function scanForEnemies(otherPlayers: Avatar[], npcs: Avatar[], res) : void{
-    if(res.player1){
-        otherPlayers.push(new Avatar(res.player1));
+function scanForEnemies(res) :Avatar[] {
+    const otherPlayers:Avatar[]=[];
+    if(res.player1 && res.player1.id!=MY_ID && res.player1.health > 0){
+        otherPlayers.push(createAvatar(res.player1));
     }
-    if(res.player2){
-        otherPlayers.push(new Avatar(res.player2));
+    if(res.player2 && res.player2.id!=MY_ID && res.player2.health > 0){
+        otherPlayers.push(createAvatar(res.player2));
     }
-    if(res.player3){
-        otherPlayers.push(new Avatar(res.player3));
+    if(res.player3 && res.player3.id!=MY_ID && res.player3.health > 0){
+        otherPlayers.push(createAvatar(res.player3));
     }
-    if(res.player4){
-        otherPlayers.push(new Avatar(res.player4));
+    if(res.player4 &&  res.player4.id!=MY_ID && res.player4.health > 0){
+        otherPlayers.push(createAvatar(res.player4));
     }
-    if(res.npc1){
-        npcs.push(new Avatar(res.npc1));
+    if(res.npc1 && res.npc1.health > 0){
+        otherPlayers.push(createAvatar(res.npc1));
     }
-    if(res.npc2){
-        npcs.push(new Avatar(res.npc2));
+    if(res.npc2 && res.npc2.health > 0){
+        otherPlayers.push(createAvatar(res.npc2));
     }
+    return otherPlayers;
 }
-
+function createAvatar(player):Avatar{
+    const avatar:Avatar={
+        id: player.id,
+        health: player._health,
+        maxHealth: player._maxHealth,
+        money: player.money,
+        q: player.q,
+        r: player.r,
+        s: player.s,
+        cannons: player.cannons,
+        paralysed: player.paralysed,
+        whirlPoolDuration: player.whirlPoolDuration,
+        potNums: player.potNums,
+        illegalMoves: player.illegalMoves,
+        sight: player.sight,
+    }
+    return avatar;
+}
 function initStartPostion(res, mapa : Map<number, Polje>){
     switch(res.id){
         case 1:
