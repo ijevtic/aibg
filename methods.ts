@@ -11,6 +11,7 @@ let cnt = 0;
 let pare = 0;
 let hull = 0;
 let cannon = 0;
+let moj_avatar:Avatar;
 
 function je_kod_prodze():boolean{
     let hahaha = false;
@@ -76,6 +77,11 @@ function staKupujem(){
     return -1;
 }
 let idNapada;
+let idiHitno : Polje;
+
+export function idiHitnoNegde():Polje{
+    return idiHitno;
+}
 
 export function vratiIdNapada():number{
     return idNapada;
@@ -85,17 +91,73 @@ export function odlucivac():number{
     if(idNapada!=-1){
         return 5;
     }
+    let p: Polje = opasanNeprijateljUOkolini();
+    if(p != null) {
+        idiHitno = p;
+        return 6;
+    }
     if(je_kod_prodze()){
         const stakup = staKupujem();
         if(stakup!=-1){
             return stakup;
         }
     }
+    // if(healovanje()){
+
+    // }
+    p = lakaMetaUOkolini();
+    if(p != null){
+        idiHitno = p;
+        return 6;
+    }
     if(dalKupujem() && prodavnice.length!=0){
         return 1;
     }
     return 2;
 }
+
+// function healovanje(){
+//     if(moj_avatar.maxHealth != 1000 || moj_avatar.cannons != 250) return;
+//     if(moj_avatar.health < moj_avatar.maxHealth/2) {
+//         return
+//     }
+// }
+
+function opasanNeprijateljUOkolini(): Polje{
+    let lav:Polje[]=[];
+    lav.push(igrac);
+    let mapDist=bfsVazduh(lav);
+    for(let player of igraci){
+        if(dobijDist(napraviPoljeOdAvatara(player),mapDist,true)==3){
+            if(odrediJacinuProtivnika(player) == 3)
+            return bezi_od_polja(igrac, napraviPoljeOdAvatara(player), globalnaMapa);
+        }
+    }
+    return null;
+}
+
+function lakaMetaUOkolini(): Polje{
+    let lav:Polje[]=[];
+    lav.push(igrac);
+    let mapDist=bfsVazduh(lav);
+    for(let player of igraci){
+        if(dobijDist(napraviPoljeOdAvatara(player),mapDist,true)==3){
+            if(odrediJacinuProtivnika(player) == 1)
+                return idi_pravo_ka_polju(igrac, napraviPoljeOdAvatara(player), globalnaMapa);
+        }
+    }
+
+}
+
+function odrediJacinuProtivnika(player: Avatar): number{
+    let hits: number = (player.health/moj_avatar.cannons+1)%moj_avatar.cannons;
+    let damage: number = hits*player.cannons;
+    if(damage * 2.5 < moj_avatar.health && moj_avatar.health - damage > 250)
+        return 1;
+    if(damage*1.3 >= moj_avatar.health || moj_avatar.health - damage < 200)
+        return 3;
+}
+
 export function dalNapadamo(){
    let lav:Polje[]=[];
    lav.push(igrac);
@@ -120,6 +182,7 @@ function napraviPoljeOdAvatara(avatar:Avatar):Polje{
 }
 export function updateGlobal(response){
     if(!response || !response.currFlag){
+        console.log("LOSEEEEE");
         return;
     }
     zastava = response.currFlag;
@@ -155,15 +218,26 @@ export function updateGlobal(response){
 
 function dobij_igraca(response){
     if(response.player1 && response.player1.id == MY_ID){
+        moj_avatar = response.player1;
+        console.log("ja sam igrac1");
         return response.player1;
     }
     if(response.player2 && response.player2.id == MY_ID){
+        moj_avatar = response.player2;
+        
+        console.log("ja sam igrac2");
         return response.player2;
     }
     if(response.player3 && response.player3.id == MY_ID){
+        moj_avatar = response.player2;
+        
+        console.log("ja sam igrac3");
         return response.player3;
     }
     if(response.player4 && response.player4.id == MY_ID){
+        moj_avatar = response.player2;
+        
+        console.log("ja sam igrac4");
         return response.player4;
     }
     return response.player1;

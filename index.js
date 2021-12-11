@@ -40,14 +40,24 @@ exports.MY_ID = void 0;
 var node_fetch_1 = require("node-fetch");
 var methods_1 = require("./methods");
 var SERVER_IP = 'best1.aibg.best:9080';
-exports.MY_ID = 11;
-var GAME_ID = 137;
+exports.MY_ID = 4;
+var GAME_ID = 10001;
 var main = function () { return __awaiter(void 0, void 0, void 0, function () {
     var inicijalnoStanje, i, poljeGdeIdemo, gdeIdemo, odluka, drugi;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/train?gameId=").concat(exports.MY_ID).concat(GAME_ID, "&playerId=").concat(exports.MY_ID, "&position=").concat(1))
-                    .then(function (res) { return res.json(); })];
+            case 0: return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/game/play?playerId=").concat(exports.MY_ID, "&gameId=").concat(GAME_ID))
+                    .then(function (res) { return __awaiter(void 0, void 0, void 0, function () {
+                    var c;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, res.json()];
+                            case 1:
+                                c = _a.sent();
+                                return [2 /*return*/, c];
+                        }
+                    });
+                }); })];
             case 1:
                 inicijalnoStanje = _a.sent();
                 (0, methods_1.updateGlobal)(inicijalnoStanje);
@@ -59,6 +69,7 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                 poljeGdeIdemo = null;
                 gdeIdemo = null;
                 odluka = (0, methods_1.odlucivac)();
+                console.log("usli u switch");
                 switch (odluka) {
                     case 1:
                         poljeGdeIdemo = (0, methods_1.najblizaProdavnicaMain)();
@@ -77,9 +88,24 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                     case 5:
                         gdeIdemo = "atk-" + (0, methods_1.vratiIdNapada)();
                         break;
+                    case 6:
+                        poljeGdeIdemo = (0, methods_1.idiHitnoNegde)();
+                        gdeIdemo = (0, methods_1.getDirectionMain)(poljeGdeIdemo);
+                        break;
                 }
-                return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/doAction?playerId=").concat(exports.MY_ID, "&gameId=").concat(exports.MY_ID).concat(GAME_ID, "&action=").concat(gdeIdemo))
-                        .then(function (res) { return res.json(); })["catch"](function (err) { null; })];
+                console.log("izasli iz switch");
+                return [4 /*yield*/, (0, node_fetch_1["default"])("http://".concat(SERVER_IP, "/doAction?playerId=").concat(exports.MY_ID, "&gameId=").concat(GAME_ID, "&action=").concat(gdeIdemo))
+                        .then(function (res) { return __awaiter(void 0, void 0, void 0, function () {
+                        var c;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, res.json()];
+                                case 1:
+                                    c = _a.sent();
+                                    return [2 /*return*/, c];
+                            }
+                        });
+                    }); })];
             case 3:
                 drugi = _a.sent();
                 if (drugi == null) {

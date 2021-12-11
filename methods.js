@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.getDirectionMain = exports.idiKaZastaviMain = exports.updateGlobal = exports.dalNapadamo = exports.odlucivac = exports.vratiIdNapada = exports.najblizaProdavnicaMain = void 0;
+exports.getDirectionMain = exports.idiKaZastaviMain = exports.updateGlobal = exports.dalNapadamo = exports.odlucivac = exports.vratiIdNapada = exports.idiHitnoNegde = exports.najblizaProdavnicaMain = void 0;
 var types_1 = require("./types");
 var index_1 = require("./index");
 var zastava = null;
@@ -12,6 +12,7 @@ var cnt = 0;
 var pare = 0;
 var hull = 0;
 var cannon = 0;
+var moj_avatar;
 function je_kod_prodze() {
     var hahaha = false;
     prodavnice.forEach(function (prodza) {
@@ -75,6 +76,11 @@ function staKupujem() {
     return -1;
 }
 var idNapada;
+var idiHitno;
+function idiHitnoNegde() {
+    return idiHitno;
+}
+exports.idiHitnoNegde = idiHitnoNegde;
 function vratiIdNapada() {
     return idNapada;
 }
@@ -84,11 +90,23 @@ function odlucivac() {
     if (idNapada != -1) {
         return 5;
     }
+    var p = opasanNeprijateljUOkolini();
+    if (p != null) {
+        idiHitno = p;
+        return 6;
+    }
     if (je_kod_prodze()) {
         var stakup = staKupujem();
         if (stakup != -1) {
             return stakup;
         }
+    }
+    // if(healovanje()){
+    // }
+    p = lakaMetaUOkolini();
+    if (p != null) {
+        idiHitno = p;
+        return 6;
     }
     if (dalKupujem() && prodavnice.length != 0) {
         return 1;
@@ -96,12 +114,51 @@ function odlucivac() {
     return 2;
 }
 exports.odlucivac = odlucivac;
-function dalNapadamo() {
+// function healovanje(){
+//     if(moj_avatar.maxHealth != 1000 || moj_avatar.cannons != 250) return;
+//     if(moj_avatar.health < moj_avatar.maxHealth/2) {
+//         return
+//     }
+// }
+function opasanNeprijateljUOkolini() {
     var lav = [];
     lav.push(igrac);
     var mapDist = bfsVazduh(lav);
     for (var _i = 0, igraci_1 = igraci; _i < igraci_1.length; _i++) {
         var player = igraci_1[_i];
+        if (dobijDist(napraviPoljeOdAvatara(player), mapDist, true) == 3) {
+            if (odrediJacinuProtivnika(player) == 3)
+                return bezi_od_polja(igrac, napraviPoljeOdAvatara(player), globalnaMapa);
+        }
+    }
+    return null;
+}
+function lakaMetaUOkolini() {
+    var lav = [];
+    lav.push(igrac);
+    var mapDist = bfsVazduh(lav);
+    for (var _i = 0, igraci_2 = igraci; _i < igraci_2.length; _i++) {
+        var player = igraci_2[_i];
+        if (dobijDist(napraviPoljeOdAvatara(player), mapDist, true) == 3) {
+            if (odrediJacinuProtivnika(player) == 1)
+                return idi_pravo_ka_polju(igrac, napraviPoljeOdAvatara(player), globalnaMapa);
+        }
+    }
+}
+function odrediJacinuProtivnika(player) {
+    var hits = (player.health / moj_avatar.cannons + 1) % moj_avatar.cannons;
+    var damage = hits * player.cannons;
+    if (damage * 2.5 < moj_avatar.health && moj_avatar.health - damage > 250)
+        return 1;
+    if (damage * 1.3 >= moj_avatar.health || moj_avatar.health - damage < 200)
+        return 3;
+}
+function dalNapadamo() {
+    var lav = [];
+    lav.push(igrac);
+    var mapDist = bfsVazduh(lav);
+    for (var _i = 0, igraci_3 = igraci; _i < igraci_3.length; _i++) {
+        var player = igraci_3[_i];
         if (dobijDist(napraviPoljeOdAvatara(player), mapDist, true) <= 2) {
             return player.id;
         }
@@ -122,6 +179,7 @@ function napraviPoljeOdAvatara(avatar) {
 }
 function updateGlobal(response) {
     if (!response || !response.currFlag) {
+        console.log("LOSEEEEE");
         return;
     }
     zastava = response.currFlag;
@@ -155,15 +213,23 @@ function updateGlobal(response) {
 exports.updateGlobal = updateGlobal;
 function dobij_igraca(response) {
     if (response.player1 && response.player1.id == index_1.MY_ID) {
+        moj_avatar = response.player1;
+        console.log("ja sam igrac1");
         return response.player1;
     }
     if (response.player2 && response.player2.id == index_1.MY_ID) {
+        moj_avatar = response.player2;
+        console.log("ja sam igrac2");
         return response.player2;
     }
     if (response.player3 && response.player3.id == index_1.MY_ID) {
+        moj_avatar = response.player2;
+        console.log("ja sam igrac3");
         return response.player3;
     }
     if (response.player4 && response.player4.id == index_1.MY_ID) {
+        moj_avatar = response.player2;
+        console.log("ja sam igrac4");
         return response.player4;
     }
     return response.player1;
